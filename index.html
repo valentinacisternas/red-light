@@ -155,7 +155,7 @@ async function send(cmd, label) {
   try {
     const r = await fetch(`${NTFY}/${cfg.r}`, { method: 'POST', body: cmd });
     if (!r.ok) throw new Error(r.status);
-    toast(label);
+    if (label) toast(label);
   } catch (e) {
     toast('Couldn’t send. Are you online?');
   }
@@ -177,7 +177,7 @@ function render() {
   const mc = $('#mineCount'); mc.hidden = !mine.length; mc.textContent = mine.length;
 
   if (!cfg.d || !cfg.r) return renderSetup(main);
-  if (!snap) { main.innerHTML = '<p class="empty">Loading…<br><br>If it takes a while, tap ↻ — the VM answers in about 20 seconds.</p>'; return; }
+  if (!snap) { main.innerHTML = '<p class="empty">Loading…<br><br>If it takes a while, tap ↻.</p>'; return; }
 
   const bookedIds = new Set(mine.map((m) => m[1]));
   if (tab === 'studios') return renderStudios(main, bookedIds);
@@ -251,11 +251,13 @@ function renderStudios(main, bookedIds) {
     $('#title').textContent = 'Studios';
     if (!favs) {
       if (!asked.favs) { asked.favs = Date.now(); send('favs', 'Fetching your favourite studios…'); }
-      main.innerHTML = '<p class="empty"><span class="spinner"></span>Loading your favourites… (~20 s)</p>';
+      main.innerHTML = '<p class="empty"><span class="spinner"></span>Loading your favourites…</p>';
       return;
     }
     const q = query.toLowerCase();
-    const list = favs.g.filter(([, n]) => !q || n.toLowerCase().includes(q));
+    const hasClasses = (slug) => (studios[slug] ? (studios[slug].c.length ? 0 : 2) : 1);  // bookable first, then unknown, then check-in only
+    const list = favs.g.filter(([, n]) => !q || n.toLowerCase().includes(q))
+      .sort((x, y) => hasClasses(x[0]) - hasClasses(y[0]) || x[1].localeCompare(y[1]));
     let html = `<input class="search" id="q" placeholder="Search studios" value="${esc(query)}" autocomplete="off">`;
     for (const [slug, name] of list) {
       const c = studios[slug];
@@ -272,9 +274,9 @@ function renderStudios(main, bookedIds) {
   $('#title').textContent = 'Studios';
   const c = studios[studio];
   const stale = !c || (Date.now() - parseLocal(c.at)) / 6e4 > 10;
-  if (stale && (!asked[studio] || Date.now() - asked[studio] > 60000)) { asked[studio] = Date.now(); send(`studio ${studio}`, 'Fetching the schedule… (~20 s)'); }
+  if (stale && (!asked[studio] || Date.now() - asked[studio] > 60000)) { asked[studio] = Date.now(); send(`studio ${studio}`, c ? null : 'Fetching the schedule…'); }
   let html = `<button class="back" data-back="1">‹ All</button><h3 style="margin:4px 4px 0;font-size:20px">${esc(name)}</h3>`;
-  if (!c) { main.innerHTML = html + '<p class="empty"><span class="spinner"></span>Asking the VM for the schedule…<br>Takes about 20 seconds.</p>'; return; }
+  if (!c) { main.innerHTML = html + '<p class="empty"><span class="spinner"></span>Fetching the schedule…<br>A couple of seconds.</p>'; return; }
   if (stale) html += '<p class="note"><span class="spinner"></span>Updating…</p>';
   if (!c.c.length) html += '<p class="empty">This studio has no bookable classes in the app (check-in only).</p>';
   let day = '';
@@ -314,7 +316,7 @@ $('#main').addEventListener('click', (e) => {
   if (b.dataset.filter) { filter = b.dataset.filter; store.set('filter', filter); return render(); }
   if (b.dataset.book) {
     pending[b.dataset.book] = Date.now(); render();
-    return send(`book ${b.dataset.book}`, 'Booking… confirmation arrives in ~20 s');
+    return send(`book ${b.dataset.book}`, 'Booking… confirmation in a few seconds');
   }
   if (b.dataset.cancel) {
     const late = b.dataset.late === '1';
@@ -334,7 +336,7 @@ $('#nav').addEventListener('click', (e) => {
 });
 $('#refresh').onclick = () => {
   if (!cfg.r) return;
-  if (tab === 'studios' && studio) { asked[studio] = Date.now(); send(`studio ${studio}`, 'Fetching the schedule… (~20 s)'); }
+  if (tab === 'studios' && studio) { asked[studio] = Date.now(); send(`studio ${studio}`, 'Refreshing this studio…'); }
   else if (tab === 'studios' && !favs) send('favs', 'Fetching your favourites…');
   else send('refresh', 'Asking for fresh data…');
   load();
@@ -359,12 +361,29 @@ function accept(msg) {
   } catch {}
 }
 
+async function onMessage(m) {
+  if (m.attachment && m.attachment.name === 'bundle.json') {
+    if (m.time * 1000 <= Number(store.get('bundleTime') || 0)) return;
+    try {
+      const b = await fetch(m.attachment.url).then((r) => r.json());
+      if (b.k !== 'bundle') return;
+      if (!favs || b.at >= favs.at) { favs = { at: b.at, g: b.favs }; store.set('favs', JSON.stringify(favs)); }
+      for (const [slug, st] of Object.entries(b.studios)) if (!studios[slug] || st.at >= studios[slug].at) studios[slug] = st;
+      store.set('studios', JSON.stringify(studios));
+      store.set('bundleTime', String(m.time * 1000));
+      render();
+    } catch {}  // attachments expire after 3 h; the next hourly bundle replaces it
+    return;
+  }
+  accept(m.message);
+}
+
 async function load() {
   if (!cfg.d) return render();
   try {
     const r = await fetch(`${NTFY}/${cfg.d}/json?poll=1&since=12h`);
     const msgs = (await r.text()).trim().split('\n').filter(Boolean).map((l) => JSON.parse(l)).filter((m) => m.event === 'message');
-    for (const m of msgs) accept(m.message);
+    for (const m of msgs) await onMessage(m);
     if (!msgs.length) render();
   } catch { render(); }
 }
@@ -373,7 +392,7 @@ let es;
 function live() {
   if (!cfg.d || es) return;
   es = new EventSource(`${NTFY}/${cfg.d}/sse`);
-  es.onmessage = (e) => { try { const m = JSON.parse(e.data); if (m.event === 'message') accept(m.message); } catch {} };
+  es.onmessage = (e) => { try { const m = JSON.parse(e.data); if (m.event === 'message') onMessage(m); } catch {} };
   es.onerror = () => { es.close(); es = null; setTimeout(live, 5000); };
 }
 
