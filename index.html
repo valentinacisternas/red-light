@@ -7,35 +7,39 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MoveList">
-<meta name="theme-color" content="#140d17">
+<meta name="theme-color" content="#1a0d1b">
 <meta name="referrer" content="no-referrer">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <title>MoveList</title>
 <style>
   :root {
-    --bg: #faf6f4; --bg-glow: rgba(255, 92, 92, .10);
-    --card: #ffffff; --card-2: #f6efee; --ink: #22161f; --muted: #8a7b85; --line: rgba(34, 22, 31, .08);
-    --accent: #e8484e; --accent-2: #ff7a59; --accent-ink: #ffffff; --accent-soft: rgba(232, 72, 78, .10);
-    --green: #1e9e5a; --green-soft: rgba(30, 158, 90, .12);
-    --amber: #b9771a; --amber-soft: rgba(185, 119, 26, .13);
-    --shadow: 0 1px 2px rgba(34, 22, 31, .04), 0 6px 18px rgba(34, 22, 31, .06);
-    --radius: 20px;
+    --bg: #fff6f9; --bg-glow: rgba(255, 105, 160, .16); --bg-glow-2: rgba(182, 140, 255, .14);
+    --card: #ffffff; --card-2: #fdeef4; --ink: #3a1630; --muted: #a07a92; --line: rgba(196, 70, 130, .10);
+    --accent: #f2558f; --accent-2: #ff9bbd; --accent-ink: #ffffff; --accent-soft: rgba(242, 85, 143, .12);
+    --lilac: #a989f5; --lilac-soft: rgba(169, 137, 245, .14);
+    --green: #22a876; --green-soft: rgba(34, 168, 118, .12);
+    --amber: #e07a3f; --amber-soft: rgba(224, 122, 63, .13);
+    --shadow: 0 1px 2px rgba(196, 70, 130, .06), 0 8px 22px rgba(196, 70, 130, .10);
+    --radius: 24px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #120b14; --bg-glow: rgba(255, 70, 80, .16);
-      --card: #1d1420; --card-2: #261b2a; --ink: #f6eef5; --muted: #a495a3; --line: rgba(255, 255, 255, .07);
-      --accent-soft: rgba(255, 92, 92, .16); --green: #4fd18b; --green-soft: rgba(79, 209, 139, .14);
-      --amber: #f0b95f; --amber-soft: rgba(240, 185, 95, .14);
-      --shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 24px rgba(0, 0, 0, .35);
+      --bg: #1a0d1b; --bg-glow: rgba(255, 92, 160, .20); --bg-glow-2: rgba(160, 120, 255, .16);
+      --card: #261427; --card-2: #331c34; --ink: #ffeef6; --muted: #c49bb5; --line: rgba(255, 170, 210, .10);
+      --accent: #ff6ea6; --accent-2: #ffa8c8; --accent-soft: rgba(255, 110, 166, .16);
+      --lilac: #c4a8ff; --lilac-soft: rgba(196, 168, 255, .16);
+      --green: #5fdcaa; --green-soft: rgba(95, 220, 170, .14);
+      --amber: #ffb07a; --amber-soft: rgba(255, 176, 122, .14);
+      --shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 12px 28px rgba(0, 0, 0, .40);
     }
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { background: var(--bg); }
   body { margin: 0; color: var(--ink); min-height: 100vh;
-    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-    background: radial-gradient(120% 50% at 50% -10%, var(--bg-glow), transparent 70%) no-repeat, var(--bg);
+    font: 16px/1.4 ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: radial-gradient(90% 45% at 15% -5%, var(--bg-glow), transparent 70%) no-repeat,
+      radial-gradient(80% 40% at 100% 0%, var(--bg-glow-2), transparent 70%) no-repeat, var(--bg);
     padding: env(safe-area-inset-top) 0 calc(92px + env(safe-area-inset-bottom)); }
   button { font: inherit; cursor: pointer; }
   button:active { transform: scale(.97); }
@@ -49,7 +53,8 @@
   .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
   .live .dot { background: var(--green); box-shadow: 0 0 0 0 var(--green); animation: pulse 2.4s infinite; }
   @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(79, 209, 139, .5); } 70% { box-shadow: 0 0 0 7px rgba(79, 209, 139, 0); } 100% { box-shadow: 0 0 0 0 rgba(79, 209, 139, 0); } }
-  h1 { font-size: 34px; line-height: 1.1; font-weight: 800; letter-spacing: -.025em; margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  h1 { background: linear-gradient(100deg, var(--accent), var(--lilac)); -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-size: 34px; line-height: 1.1; font-weight: 800; letter-spacing: -.025em; margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .round { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--card); color: var(--ink);
     display: grid; place-items: center; box-shadow: var(--shadow); flex: none; margin-bottom: 2px; }
   .round.spin svg { animation: spin .8s linear infinite; }
@@ -58,7 +63,7 @@
   /* segmented filter */
   .seg { display: flex; background: var(--card-2); border-radius: 12px; padding: 3px; margin: 4px 0 6px; }
   .seg button { flex: 1; border: 0; background: none; color: var(--muted); font-size: 13px; font-weight: 600; padding: 7px 4px; border-radius: 9px; }
-  .seg button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+  .seg button[aria-pressed="true"] { background: var(--card); color: var(--accent); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
 
   /* day headings */
   h2 { display: flex; align-items: baseline; gap: 8px; margin: 22px 4px 10px; font-size: 17px; font-weight: 750; letter-spacing: -.01em; }
@@ -77,18 +82,18 @@
   .sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cap { display: flex; align-items: center; gap: 8px; margin-top: 7px; font-size: 12px; font-weight: 600; }
   .bar { flex: 1; max-width: 90px; height: 5px; border-radius: 3px; background: var(--card-2); overflow: hidden; }
-  .bar i { display: block; height: 100%; border-radius: 3px; background: var(--green); }
-  .cap.full .bar i { background: var(--accent); }
+  .bar i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--lilac), var(--accent)); }
+  .cap.full .bar i { background: var(--muted); }
   .cap.low .bar i { background: var(--amber); }
-  .cap em { font-style: normal; color: var(--green); }
-  .cap.full em { color: var(--accent); }
+  .cap em { font-style: normal; color: var(--accent); }
+  .cap.full em { color: var(--muted); }
   .cap.low em { color: var(--amber); }
   .tag { white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 11.5px; font-weight: 600;
     color: var(--amber); background: var(--amber-soft); padding: 2px 8px; border-radius: 999px; }
   .side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; }
   .btn { border: 0; border-radius: 999px; padding: 9px 16px; font-weight: 700; font-size: 14px; min-width: 84px; }
-  .btn.primary { color: var(--accent-ink); background: linear-gradient(135deg, var(--accent-2), var(--accent));
-    box-shadow: 0 4px 14px rgba(232, 72, 78, .35); }
+  .btn.primary { color: var(--accent-ink); background: linear-gradient(135deg, var(--accent-2), var(--accent) 55%, #e2468a);
+    box-shadow: 0 6px 16px rgba(242, 85, 143, .38); }
   .btn.soft { color: var(--accent); background: var(--accent-soft); }
   .btn.wait { color: var(--ink); background: var(--card-2); }
   .btn[disabled] { opacity: .55; box-shadow: none; }
@@ -97,7 +102,7 @@
   .ghost { border: 0; background: none; color: var(--muted); padding: 2px 4px; display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; }
 
   /* my bookings */
-  .date { width: 52px; flex: none; border-radius: 14px; background: var(--accent-soft); text-align: center; padding: 6px 0 7px; }
+  .date { width: 52px; flex: none; border-radius: 16px; background: linear-gradient(160deg, var(--accent-soft), var(--lilac-soft)); text-align: center; padding: 6px 0 7px; }
   .date span { display: block; font-size: 10.5px; font-weight: 750; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); }
   .date b { display: block; font-size: 22px; font-weight: 800; line-height: 1.05; }
   .warn { color: var(--accent); font-weight: 600; }
@@ -140,7 +145,7 @@
     -webkit-backdrop-filter: blur(20px) saturate(1.4); box-shadow: 0 8px 30px rgba(0, 0, 0, .18); }
   nav button { position: relative; flex: 1; border: 0; background: none; color: var(--muted); font-size: 10.5px; font-weight: 650;
     display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 0 6px; border-radius: 20px; }
-  nav button[aria-current="page"] { color: var(--accent); background: var(--accent-soft); }
+  nav button[aria-current="page"] { color: var(--accent); background: linear-gradient(160deg, var(--accent-soft), var(--lilac-soft)); }
   .badge { position: absolute; top: 3px; left: calc(50% + 6px); background: var(--accent); color: #fff; border-radius: 999px;
     font-size: 10px; font-weight: 800; min-width: 17px; height: 17px; line-height: 17px; padding: 0 4px; font-style: normal; }
   .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 9; max-width: calc(100% - 40px);
@@ -148,6 +153,30 @@
     font-size: 14px; font-weight: 600; transform: translate(-50%, 16px); opacity: 0; transition: .25s; pointer-events: none;
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .toast.show { transform: translate(-50%, 0); opacity: 1; }
+  .scrim { position: fixed; inset: 0; z-index: 20; background: rgba(10, 4, 12, .45); opacity: 0; transition: opacity .2s;
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+  .scrim.show { opacity: 1; }
+  .sheet { position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 21;
+    background: var(--card); border-radius: 28px; padding: 22px 20px 18px; box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+    transform: translateY(110%); transition: transform .32s cubic-bezier(.2, .9, .25, 1); text-align: center; }
+  .sheet.show { transform: none; }
+  .sheet .grab { width: 38px; height: 5px; border-radius: 3px; background: var(--line); margin: -10px auto 14px; }
+  .sheet h4 { margin: 6px 0 4px; font-size: 21px; letter-spacing: -.015em; }
+  .sheet .lead { color: var(--muted); font-size: 14.5px; margin: 0 8px 14px; }
+  .facts { background: var(--card-2); border-radius: 16px; padding: 4px 14px; margin: 0 0 14px; text-align: left; }
+  .fact { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; font-size: 14.5px; }
+  .fact + .fact { border-top: 1px solid var(--line); }
+  .fact span { color: var(--muted); }
+  .fact b { font-weight: 650; text-align: right; }
+  .fine { font-size: 12.5px; color: var(--muted); margin: 0 6px 16px; line-height: 1.45; }
+  .sheet .buttons { display: flex; gap: 10px; }
+  .sheet .buttons .btn { flex: 1; padding: 14px; font-size: 16px; border-radius: 16px; }
+  .badge-icon { width: 64px; height: 64px; border-radius: 50%; margin: 2px auto 6px; display: grid; place-items: center; }
+  .badge-icon.ok { background: var(--green-soft); color: var(--green); }
+  .badge-icon.bad { background: var(--accent-soft); color: var(--accent); }
+  .badge-icon.ask { background: var(--accent-soft); color: var(--accent); }
+  .badge-icon svg path { stroke-dasharray: 30; stroke-dashoffset: 30; animation: draw .45s .15s ease-out forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
   .setup { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-top: 12px; }
   .setup input { width: 100%; padding: 12px; border-radius: 12px; border: 0; background: var(--card-2); color: var(--ink); font-size: 15px; margin: 10px 0; }
 </style>
@@ -178,6 +207,8 @@
     Bookings<i class="badge" id="mineCount" hidden></i></button>
 </nav>
 <div class="toast" id="toast"></div>
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" hidden></div>
 
 <script>
 /*
@@ -189,7 +220,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-13.5';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-13.7';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -246,10 +277,11 @@ const ICON = {
 
 // stable colour per studio, so each one is recognisable at a glance
 function avatar(name, cls = 'avatar') {
-  let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  const PALETTE = [330, 345, 300, 280, 265, 355, 15, 320];  // rose, pink, orchid, lilac, lavender, coral, peach, magenta
+  let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0; h = PALETTE[h % PALETTE.length];
   const words = name.replace(/München|Munich|Studio(s)?\b/gi, '').trim().split(/[\s\-–·&]+/).filter(Boolean);
   const ini = ((words[0] || name)[0] + (words[1] ? words[1][0] : (words[0] || '')[1] || '')).toUpperCase();
-  return `<div class="${cls}" style="background:linear-gradient(135deg,hsl(${h} 70% 62%),hsl(${(h + 35) % 360} 65% 48%))">${esc(ini)}</div>`;
+  return `<div class="${cls}" style="background:linear-gradient(135deg,hsl(${h} 85% 74%),hsl(${(h + 25) % 360} 70% 58%))">${esc(ini)}</div>`;
 }
 
 function capacity(booked, cap) {
@@ -279,6 +311,47 @@ function classCard({ id, start, name, sub = '', booked, cap, bookedIds, extra = 
 function empty(icon, title, text) {
   return `<div class="empty"><div class="big">${icon}</div><b>${title}</b>${text}</div>`;
 }
+
+// bottom sheet: resolves with the value of the pressed button (or null when dismissed)
+let sheetDone = null;
+function sheet({ icon = '', title, lead = '', facts = [], fine = '', buttons }) {
+  const el = $('#sheet'), scrim = $('#scrim');
+  if (sheetDone) sheetDone(null);
+  el.innerHTML = `<div class="grab"></div>${icon}<h4>${title}</h4>${lead ? `<p class="lead">${lead}</p>` : ''}
+    ${facts.length ? `<div class="facts">${facts.map(([k, v]) => `<div class="fact"><span>${k}</span><b>${v}</b></div>`).join('')}</div>` : ''}
+    ${fine ? `<p class="fine">${fine}</p>` : ''}
+    <div class="buttons">${buttons.map((b, i) => `<button class="btn ${b.style || 'wait'}" data-sheet="${i}">${b.label}</button>`).join('')}</div>`;
+  el.hidden = scrim.hidden = false;
+  requestAnimationFrame(() => { el.classList.add('show'); scrim.classList.add('show'); });
+  return new Promise((resolve) => {
+    sheetDone = (v) => {
+      sheetDone = null;
+      el.classList.remove('show'); scrim.classList.remove('show');
+      setTimeout(() => { if (!sheetDone) el.hidden = scrim.hidden = true; }, 320);
+      resolve(v);
+    };
+    el.onclick = (e) => { const b = e.target.closest('[data-sheet]'); if (b) sheetDone(buttons[+b.dataset.sheet].value); };
+    scrim.onclick = () => sheetDone && sheetDone(null);
+  });
+}
+const BIG = {
+  ok: '<div class="badge-icon ok"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>',
+  bad: '<div class="badge-icon bad"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg></div>',
+  ask: '<div class="badge-icon ask"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></div>',
+};
+const longDate = (s) => { const d = parseLocal(s); return `${DAYS_LONG[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}`; };
+
+// everything the app knows about a class id, wherever it was listed
+function findClass(id) {
+  for (const r of snap?.spots || []) if (r[0] === id) return { name: r[1], start: r[2], gym: 'Session München', booked: r[3], cap: r[4], surcharge: true };
+  for (const r of snap?.specials || []) if (r[0] === id) return { name: r[3], start: r[1], gym: r[2], booked: r[4], cap: r[5] };
+  for (const [slug, st] of Object.entries(studios)) for (const r of st.c) if (r[0] === id) {
+    const gym = (favs?.g.find((f) => f[0] === slug) || [, st.n])[1];
+    return { name: r[2].replace(' (+€)', ''), start: r[1], gym, booked: r[3], cap: r[4], surcharge: r[2].includes('(+€)') };
+  }
+  return null;
+}
+const awaiting = {};  // class/booking id -> what to show when the VM's answer arrives
 
 function toast(msg, ms = 2600) {
   const t = $('#toast'); t.textContent = msg; t.classList.add('show');
@@ -325,7 +398,7 @@ function render() {
       <button data-filter="fits" aria-pressed="${filter === 'fits'}">Fits calendar</button>
       <button data-filter="free" aria-pressed="${filter === 'free'}">Spots free</button>
       <button data-filter="all" aria-pressed="${filter === 'all'}">All</button></div>`;
-    if (!rows.length) html += empty('🌙', 'Nothing here', 'No classes match this filter right now.');
+    if (!rows.length) html += empty('🌸', 'Nothing here', 'No classes match this filter right now.');
     let day = '';
     for (const [id, name, start, booked, cap, fits, ignored] of rows) {
       if (dayKey(start) !== day) { day = dayKey(start); html += dayHeading(start); }
@@ -351,7 +424,7 @@ function render() {
 
   if (tab === 'mine') {
     $('#title').textContent = 'Bookings';
-    let html = mine.length ? '' : empty('🗓️', 'No upcoming bookings', 'Book a class and it shows up here.');
+    let html = mine.length ? '' : empty('🎀', 'No upcoming bookings', 'Book a class and it shows up here.');
     for (const [bid, cid, start, name, gym, status] of mine) {
       const d = parseLocal(start), hoursLeft = (d - Date.now()) / 36e5, wait = pending[bid];
       html += `<div class="card">
@@ -439,19 +512,37 @@ $('#main').addEventListener('click', (e) => {
   if (b.dataset.studio) { studio = b.dataset.studio; window.scrollTo(0, 0); return render(); }
   if (b.dataset.back) { studio = null; return render(); }
   if (b.dataset.filter) { filter = b.dataset.filter; store.set('filter', filter); return render(); }
-  if (b.dataset.book) {
-    pending[b.dataset.book] = Date.now(); render();
-    return send(`book ${b.dataset.book}`, 'Booking… confirmation in a few seconds');
-  }
-  if (b.dataset.cancel) {
-    const late = b.dataset.late === '1';
-    if (!confirm(late ? 'Less than 12 h to go: cancelling now costs 5 €. Cancel anyway?' : 'Cancel this booking?')) return;
-    pending[b.dataset.cancel] = Date.now(); render();
-    return send(`cancel ${b.dataset.cancel}`, 'Cancelling…');
-  }
+  if (b.dataset.book) return confirmBook(b.dataset.book);
+  if (b.dataset.cancel) return confirmCancel(b.dataset.cancel);
   if (b.dataset.ignore) { mark(b.dataset.ignore, 1); return send(`ignore ${b.dataset.ignore}`, 'You won’t be alerted for this class'); }
   if (b.dataset.unignore) { mark(b.dataset.unignore, 0); return send(`unignore ${b.dataset.unignore}`, 'Watching this class again'); }
 });
+async function confirmBook(id) {
+  const c = findClass(id) || { name: 'this class', start: '', gym: '' };
+  const free = c.cap - c.booked, wait = c.cap && free <= 0;
+  const facts = [['Class', esc(c.name)], ['When', c.start ? `${longDate(c.start)} · ${hhmm(c.start)}` : '—'], ['Studio', esc(c.gym || '—')]];
+  if (c.cap) facts.push(['Spots', wait ? 'Full — you’ll join the waitlist' : `${free} of ${c.cap} left`]);
+  if (c.surcharge) facts.push(['Price', '+10 € Wellpass surcharge']);
+  const ok = await sheet({ icon: BIG.ask, title: wait ? 'Join the waitlist?' : 'Confirm booking',
+    lead: 'Do you want to book this class?', facts,
+    fine: 'Free cancellation up to 12 h before. Later cancellations or no-shows can cost a fee.',
+    buttons: [{ label: 'Cancel', value: false }, { label: wait ? 'Join waitlist' : 'Book', value: true, style: 'primary' }] });
+  if (!ok) return;
+  pending[id] = Date.now(); awaiting[id] = c; render();
+  send(`book ${id}`, 'Booking…');
+}
+
+async function confirmCancel(bid) {
+  const m = snap?.mine.find((r) => r[0] === bid); if (!m) return;
+  const late = (parseLocal(m[2]) - Date.now()) / 36e5 < 12;
+  const ok = await sheet({ icon: BIG.bad, title: 'Cancel booking?', lead: late ? 'Less than 12 h to go: cancelling now costs 5 €.' : 'Cancelling is free until 12 h before.',
+    facts: [['Class', esc(m[3])], ['When', `${longDate(m[2])} · ${hhmm(m[2])}`], ['Studio', esc(m[4])]],
+    buttons: [{ label: 'Keep it', value: false }, { label: late ? 'Cancel (5 €)' : 'Cancel booking', value: true, style: 'soft' }] });
+  if (!ok) return;
+  pending[bid] = Date.now(); awaiting[bid] = { cancel: true, ...m }; render();
+  send(`cancel ${bid}`, 'Cancelling…');
+}
+
 function mark(id, v) { const r = snap?.spots.find((s) => s[0] === id); if (r) { r[6] = v; render(); } }
 
 $('#nav').addEventListener('click', (e) => {
@@ -500,15 +591,31 @@ function applyEvent(e) {
   if (e.t === 'booked' && e.s && !snap.mine.some((m) => m[0] === e.bid)) {
     snap.mine.push([e.bid, e.cid, e.s, e.n, e.g, e.st]);
     snap.mine.sort((a, b) => a[2].localeCompare(b[2]));
-    if (pending[e.cid]) toast(e.st === 'WAITING_LIST' ? 'On the waitlist ✓' : 'Booked ✓');
+    if (awaiting[e.cid]) {
+      const w = e.st === 'WAITING_LIST';
+      sheet({ icon: BIG.ok, title: w ? 'You’re on the waitlist!' : 'Booking confirmed!',
+        lead: w ? 'You’ll get a spot automatically if someone cancels 🤞' : 'See you there, queen 💖',
+        facts: [['Class', esc(e.n)], ['When', `${longDate(e.s)} · ${hhmm(e.s)}`], ['Studio', esc(e.g)]],
+        buttons: [{ label: 'Done', value: true, style: 'primary' }] });
+      delete awaiting[e.cid];
+    }
     delete pending[e.cid];
   } else if (e.t === 'cancelled') {
     snap.mine = snap.mine.filter((m) => m[0] !== e.bid);
-    if (pending[e.bid]) toast('Booking cancelled');
+    if (awaiting[e.bid]) {
+      sheet({ icon: BIG.ok, title: 'Booking cancelled', lead: 'The spot is free again.', buttons: [{ label: 'Done', value: true, style: 'primary' }] });
+      delete awaiting[e.bid];
+    }
     delete pending[e.bid];
   } else if (e.t === 'failed') {
     const id = e.cid || e.bid;
-    if (pending[id]) toast(`Didn’t work: ${e.msg || 'try again'}`, 4000);
+    if (awaiting[id]) {
+      sheet({ icon: BIG.bad, title: awaiting[id].cancel ? 'Couldn’t cancel' : 'Couldn’t book',
+        lead: esc(e.msg || 'Something went wrong — try again.'),
+        fine: awaiting[id].cancel ? 'You can still cancel it in the Wellpass app.' : 'The spot may be gone, or you already have a booking at this studio that day (max. 1).',
+        buttons: [{ label: 'OK', value: true, style: 'primary' }] });
+      delete awaiting[id];
+    }
     delete pending[id];
   }
   store.set('snap', JSON.stringify(snap));
