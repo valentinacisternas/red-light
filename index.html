@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Red Light">
+<meta name="theme-color" content="#140d17">
+<meta name="referrer" content="no-referrer">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Red Light</title>
+<style>
+  :root {
+    --bg: #f7f3f5; --card: #ffffff; --ink: #1d1420; --muted: #7a6d7e; --line: #ece4ea;
+    --red: #e5484d; --red-soft: #fde8e8; --green: #1f9d55; --green-soft: #e3f5ea;
+    --amber: #b7791f; --amber-soft: #fbf1dc; --accent: #e5484d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #140d17; --card: #1f1623; --ink: #f4ecf5; --muted: #a596a9; --line: #2e2333;
+      --red-soft: #3a1a1f; --green: #4cc382; --green-soft: #15301f; --amber: #e2b45c; --amber-soft: #33281a;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
+  body { padding: env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom)); }
+  header { position: sticky; top: 0; z-index: 5; background: var(--bg);
+    padding: 14px 16px 10px; display: flex; align-items: center; gap: 10px; }
+  header h1 { font-size: 28px; font-weight: 750; letter-spacing: -.02em; margin: 0; flex: 1; }
+  .status { font-size: 12px; color: var(--muted); text-align: right; }
+  .status b { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 5px; vertical-align: 1px; }
+  .status.live b { background: var(--green); }
+  .icon-btn { border: 0; background: var(--card); color: var(--ink); width: 38px; height: 38px; border-radius: 50%;
+    font-size: 18px; box-shadow: 0 1px 0 var(--line); }
+  main { padding: 0 16px; }
+  .chips { display: flex; gap: 8px; margin: 2px 0 12px; overflow-x: auto; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px;
+    padding: 6px 12px; font-size: 14px; white-space: nowrap; }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+    margin: 18px 4px 8px; font-weight: 650; }
+  .card { background: var(--card); border-radius: 16px; padding: 12px 14px; margin-bottom: 8px;
+    display: grid; grid-template-columns: 54px 1fr auto; gap: 4px 12px; align-items: center;
+    border: 1px solid var(--line); }
+  .card.dim { opacity: .5; }
+  .time { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+  .meta { grid-column: 2 / 3; font-size: 13px; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .pill { font-size: 12px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+  .pill.free { background: var(--green-soft); color: var(--green); }
+  .pill.full { background: var(--red-soft); color: var(--red); }
+  .pill.busy { background: var(--amber-soft); color: var(--amber); }
+  .actions { grid-row: 1 / span 2; grid-column: 3; display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+  .btn { border: 0; border-radius: 10px; padding: 8px 12px; font-weight: 650; font-size: 14px; min-width: 92px; }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.ghost { background: transparent; color: var(--muted); padding: 4px 8px; font-weight: 500; font-size: 13px; }
+  .btn.danger { background: var(--red-soft); color: var(--red); }
+  .btn[disabled] { opacity: .5; }
+  .empty { text-align: center; color: var(--muted); padding: 48px 20px; }
+  nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: flex; justify-content: space-around;
+    background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid var(--line); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); }
+  nav button { flex: 1; border: 0; background: none; color: var(--muted); font-size: 11px; font-weight: 600;
+    display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; }
+  nav button span { font-size: 22px; line-height: 1; }
+  nav button[aria-current="page"] { color: var(--accent); }
+  .badge { background: var(--accent); color: #fff; border-radius: 999px; font-size: 10px; padding: 0 5px; margin-left: 2px; }
+  .toast { position: fixed; left: 16px; right: 16px; bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 9;
+    background: var(--ink); color: var(--bg); padding: 12px 14px; border-radius: 12px; font-size: 14px;
+    transform: translateY(20px); opacity: 0; transition: .25s; pointer-events: none; }
+  .toast.show { transform: none; opacity: 1; }
+  .setup { background: var(--card); border-radius: 16px; padding: 18px; border: 1px solid var(--line); margin-top: 12px; }
+  .setup input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg);
+    color: var(--ink); font-size: 15px; margin: 10px 0; }
+  .note { font-size: 13px; color: var(--muted); margin: 10px 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Red Light</h1>
+  <div class="status" id="status"><b></b>—</div>
+  <button class="icon-btn" id="refresh" aria-label="Actualizar">↻</button>
+</header>
+<main id="main"></main>
+<nav id="nav">
+  <button data-tab="spots" aria-current="page"><span>🔴</span>Red Light</button>
+  <button data-tab="specials"><span>✨</span>Especiales</button>
+  <button data-tab="mine"><span>📅</span>Mis reservas<i class="badge" id="mineCount" hidden></i></button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/*
+  Red Light — a tiny front end for the Wellpass monitor that runs on the VM.
+  The phone can't reach the VM, so both talk through two private ntfy.sh topics:
+    data  (VM → app): a compact JSON snapshot, re-published whenever something changes
+    reply (app → VM): commands "book <class>", "cancel <booking>", "ignore <class>", "unignore <class>", "refresh"
+  The topic names live only in this device's storage (they arrive in the link's #fragment,
+  which browsers never send to the server).
+*/
+const NTFY = 'https://ntfy.sh';
+const DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+const DIAS_LARGO = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const $ = (s) => document.querySelector(s);
+
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+
+// first open: topics come in the #fragment, then are kept on this device
+const hash = new URLSearchParams(location.hash.slice(1));
+if (hash.get('d') && hash.get('r')) { store.set('d', hash.get('d')); store.set('r', hash.get('r')); }
+const cfg = { d: store.get('d') || hash.get('d'), r: store.get('r') || hash.get('r') };
+
+let snap = null, tab = 'spots', filter = store.get('filter') || 'fits', pending = {};
+
+const parseLocal = (s) => { const [d, t] = s.split('T'); const [y, m, dd] = d.split('-').map(Number); const [h, mi] = t.split(':').map(Number); return new Date(y, m - 1, dd, h, mi); };
+const hhmm = (s) => s.slice(11, 16);
+const dayKey = (s) => s.slice(0, 10);
+const dayLabel = (s) => {
+  const d = parseLocal(s), today = new Date(); today.setHours(0, 0, 0, 0);
+  const diff = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - today) / 864e5);
+  const base = `${DIAS_LARGO[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}`;
+  return diff === 0 ? `Hoy · ${base}` : diff === 1 ? `Mañana · ${base}` : base;
+};
+const shortDay = (s) => { const d = parseLocal(s); return `${DIAS[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}`; };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function toast(msg, ms = 2600) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+async function send(cmd, label) {
+  try {
+    const r = await fetch(`${NTFY}/${cfg.r}`, { method: 'POST', body: cmd });
+    if (!r.ok) throw new Error(r.status);
+    toast(label);
+  } catch (e) {
+    toast('No se pudo enviar. ¿Tienes internet?');
+  }
+}
+
+function setStatus() {
+  const el = $('#status');
+  if (!snap) { el.className = 'status'; el.innerHTML = '<b></b>esperando datos…'; return; }
+  const age = (Date.now() - parseLocal(snap.at)) / 6e4;
+  el.className = 'status' + (age < 20 ? ' live' : '');
+  el.innerHTML = `<b></b>${age < 1 ? 'ahora' : age < 60 ? `hace ${Math.round(age)} min` : 'hace ' + Math.round(age / 60) + ' h'}`;
+}
+
+function render() {
+  setStatus();
+  const main = $('#main');
+  document.querySelectorAll('nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === tab ? 'page' : 'false'));
+  const mine = snap?.mine || [];
+  const mc = $('#mineCount'); mc.hidden = !mine.length; mc.textContent = mine.length;
+
+  if (!cfg.d || !cfg.r) return renderSetup(main);
+  if (!snap) { main.innerHTML = '<p class="empty">Cargando…<br><br>Si tarda, pulsa ↻: el ordenador (la VM) responde en unos 20 segundos.</p>'; return; }
+
+  const bookedIds = new Set(mine.map((m) => m[1]));
+  if (tab === 'spots') {
+    $('#title').textContent = 'Red Light';
+    let rows = snap.spots;
+    if (filter === 'fits') rows = rows.filter((s) => s[5] && !s[6]);
+    if (filter === 'free') rows = rows.filter((s) => s[4] - s[3] > 0 && !s[6]);
+    let html = `<div class="chips">
+      <button class="chip" data-filter="fits" aria-pressed="${filter === 'fits'}">Encaja en mi calendario</button>
+      <button class="chip" data-filter="free" aria-pressed="${filter === 'free'}">Con plazas</button>
+      <button class="chip" data-filter="all" aria-pressed="${filter === 'all'}">Todas</button></div>`;
+    if (!rows.length) html += '<p class="empty">Nada por aquí con este filtro.</p>';
+    let day = '';
+    for (const [id, name, start, booked, cap, fits, ignored] of rows) {
+      if (dayKey(start) !== day) { day = dayKey(start); html += `<h2>${dayLabel(start)}</h2>`; }
+      const free = cap - booked, mineHere = bookedIds.has(id), wait = pending[id];
+      html += `<div class="card${ignored ? ' dim' : ''}">
+        <div class="time">${hhmm(start)}</div>
+        <div class="name">${esc(name)}</div>
+        <div class="actions">${
+          mineHere ? '<span class="pill free">Reservada</span>'
+          : `<button class="btn primary" data-book="${id}" ${wait ? 'disabled' : ''}>${wait ? 'Enviado…' : free > 0 ? 'Reservar' : 'Lista espera'}</button>`
+        }<button class="btn ghost" data-${ignored ? 'unignore' : 'ignore'}="${id}">${ignored ? 'Reactivar' : 'Ignorar'}</button></div>
+        <div class="meta">${free > 0 ? `<span class="pill free">${free} libre${free > 1 ? 's' : ''}</span>` : '<span class="pill full">Llena</span>'}
+          ${fits ? '' : '<span class="pill busy">Choca con tu calendario</span>'}<span>${booked}/${cap}</span></div>
+      </div>`;
+    }
+    html += '<p class="note">Session München · Red light lleva +10 € con Wellpass. Cancelar gratis hasta 12 h antes.</p>';
+    main.innerHTML = html;
+  }
+
+  if (tab === 'specials') {
+    $('#title').textContent = 'Especiales';
+    const rows = snap.specials || [];
+    let html = rows.length ? '' : '<p class="empty">Ningún especial próximo en tus estudios favoritos.<br><br>Se revisan cada hora.</p>';
+    let day = '';
+    for (const [id, start, gym, name, booked, cap] of rows) {
+      if (dayKey(start) !== day) { day = dayKey(start); html += `<h2>${dayLabel(start)}</h2>`; }
+      const free = cap - booked, wait = pending[id];
+      html += `<div class="card">
+        <div class="time">${hhmm(start)}</div>
+        <div class="name">${esc(name)}</div>
+        <div class="actions">${bookedIds.has(id) ? '<span class="pill free">Reservada</span>'
+          : `<button class="btn primary" data-book="${id}" ${wait ? 'disabled' : ''}>${wait ? 'Enviado…' : free > 0 ? 'Reservar' : 'Lista espera'}</button>`}</div>
+        <div class="meta"><span>${esc(gym)}</span><span>· ${booked}/${cap}</span></div>
+      </div>`;
+    }
+    main.innerHTML = html;
+  }
+
+  if (tab === 'mine') {
+    $('#title').textContent = 'Mis reservas';
+    let html = mine.length ? '' : '<p class="empty">No tienes reservas próximas.</p>';
+    for (const [bid, cid, start, name, gym, status] of mine) {
+      const hoursLeft = (parseLocal(start) - Date.now()) / 36e5, wait = pending[bid];
+      html += `<div class="card">
+        <div class="time">${hhmm(start)}</div>
+        <div class="name">${esc(name)}</div>
+        <div class="actions"><button class="btn danger" data-cancel="${bid}" data-late="${hoursLeft < 12 ? 1 : 0}" ${wait ? 'disabled' : ''}>${wait ? 'Enviado…' : 'Cancelar'}</button></div>
+        <div class="meta"><span>${shortDay(start)}</span><span>· ${esc(gym)}</span>${status === 'WAITING_LIST' ? '<span class="pill busy">Lista de espera</span>' : ''}
+          ${hoursLeft < 12 ? '<span class="pill full">&lt;12 h: cancelar cuesta 5 €</span>' : ''}</div>
+      </div>`;
+    }
+    main.innerHTML = html;
+  }
+}
+
+function renderSetup(main) {
+  $('#title').textContent = 'Red Light';
+  main.innerHTML = `<div class="setup"><b>Falta conectar la app</b>
+    <p class="note">Abre esta página con el enlace que te dio Claude (el que termina en <code>#d=…&amp;r=…</code>), o pégalo aquí:</p>
+    <input id="link" placeholder="https://…#d=…&r=…" autocomplete="off">
+    <button class="btn primary" id="save">Conectar</button></div>`;
+  $('#save').onclick = () => {
+    const h = new URLSearchParams(($('#link').value.split('#')[1] || ''));
+    if (h.get('d') && h.get('r')) { store.set('d', h.get('d')); store.set('r', h.get('r')); location.hash = ''; location.reload(); }
+    else toast('Ese enlace no tiene los datos de conexión.');
+  };
+}
+
+$('#main').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.filter) { filter = b.dataset.filter; store.set('filter', filter); return render(); }
+  if (b.dataset.book) {
+    pending[b.dataset.book] = Date.now(); render();
+    return send(`book ${b.dataset.book}`, 'Reservando… te llega la confirmación en ~20 s');
+  }
+  if (b.dataset.cancel) {
+    const late = b.dataset.late === '1';
+    if (!confirm(late ? 'Faltan menos de 12 h: cancelar ahora cuesta 5 €. ¿Cancelar igualmente?' : '¿Cancelar esta reserva?')) return;
+    pending[b.dataset.cancel] = Date.now(); render();
+    return send(`cancel ${b.dataset.cancel}`, 'Cancelando…');
+  }
+  if (b.dataset.ignore) { mark(b.dataset.ignore, 1); return send(`ignore ${b.dataset.ignore}`, 'No te avisaré de esta clase'); }
+  if (b.dataset.unignore) { mark(b.dataset.unignore, 0); return send(`unignore ${b.dataset.unignore}`, 'Vuelvo a vigilar esta clase'); }
+});
+function mark(id, v) { const r = snap?.spots.find((s) => s[0] === id); if (r) { r[6] = v; render(); } }
+
+$('#nav').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  tab = b.dataset.tab; window.scrollTo(0, 0); render();
+});
+$('#refresh').onclick = () => { if (cfg.r) send('refresh', 'Pidiendo datos frescos…'); load(); };
+
+function accept(msg) {
+  try {
+    const s = JSON.parse(msg);
+    if (s.v !== 1) return;
+    if (!snap || s.at >= snap.at) {
+      snap = s;
+      // drop "Enviado…" once the VM has had time to act (or the new snapshot shows it done)
+      for (const k in pending) if (Date.now() - pending[k] > 25000) delete pending[k];
+      store.set('snap', msg);
+      render();
+    }
+  } catch {}
+}
+
+async function load() {
+  if (!cfg.d) return render();
+  try {
+    const r = await fetch(`${NTFY}/${cfg.d}/json?poll=1&since=latest`);
+    const lines = (await r.text()).trim().split('\n').filter(Boolean);
+    const last = lines.map((l) => JSON.parse(l)).filter((m) => m.event === 'message').pop();
+    if (last) accept(last.message);
+    else render();
+  } catch { render(); }
+}
+
+let es;
+function live() {
+  if (!cfg.d || es) return;
+  es = new EventSource(`${NTFY}/${cfg.d}/sse`);
+  es.onmessage = (e) => { try { const m = JSON.parse(e.data); if (m.event === 'message') accept(m.message); } catch {} };
+  es.onerror = () => { es.close(); es = null; setTimeout(live, 5000); };
+}
+
+const cached = store.get('snap'); if (cached) accept(cached);
+render(); load(); live();
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { load(); live(); } });
+setInterval(setStatus, 30000);
+</script>
+</body>
+</html>
