@@ -115,6 +115,16 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
+const VERSION = '2026-10-13.1';  // bump on every publish: open apps notice and reload themselves
+
+// GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
+async function checkForUpdate() {
+  try {
+    const html = await fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then((r) => r.text());
+    const live = (html.match(/const VERSION = '([^']+)'/) || [])[1];
+    if (live && live !== VERSION) location.reload();
+  } catch {}
+}
 const DIAS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DIAS_LARGO = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const $ = (s) => document.querySelector(s);
@@ -398,7 +408,8 @@ function live() {
 
 const cached = store.get('snap'); if (cached) accept(cached);
 render(); load(); live();
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { load(); live(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { checkForUpdate(); load(); live(); } });
+checkForUpdate();
 setInterval(setStatus, 30000);
 </script>
 </body>
