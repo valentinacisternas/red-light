@@ -14,94 +14,168 @@
 <title>Red Light</title>
 <style>
   :root {
-    --bg: #f7f3f5; --card: #ffffff; --ink: #1d1420; --muted: #7a6d7e; --line: #ece4ea;
-    --red: #e5484d; --red-soft: #fde8e8; --green: #1f9d55; --green-soft: #e3f5ea;
-    --amber: #b7791f; --amber-soft: #fbf1dc; --accent: #e5484d;
+    --bg: #faf6f4; --bg-glow: rgba(255, 92, 92, .10);
+    --card: #ffffff; --card-2: #f6efee; --ink: #22161f; --muted: #8a7b85; --line: rgba(34, 22, 31, .08);
+    --accent: #e8484e; --accent-2: #ff7a59; --accent-ink: #ffffff; --accent-soft: rgba(232, 72, 78, .10);
+    --green: #1e9e5a; --green-soft: rgba(30, 158, 90, .12);
+    --amber: #b9771a; --amber-soft: rgba(185, 119, 26, .13);
+    --shadow: 0 1px 2px rgba(34, 22, 31, .04), 0 6px 18px rgba(34, 22, 31, .06);
+    --radius: 20px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #140d17; --card: #1f1623; --ink: #f4ecf5; --muted: #a596a9; --line: #2e2333;
-      --red-soft: #3a1a1f; --green: #4cc382; --green-soft: #15301f; --amber: #e2b45c; --amber-soft: #33281a;
+      --bg: #120b14; --bg-glow: rgba(255, 70, 80, .16);
+      --card: #1d1420; --card-2: #261b2a; --ink: #f6eef5; --muted: #a495a3; --line: rgba(255, 255, 255, .07);
+      --accent-soft: rgba(255, 92, 92, .16); --green: #4fd18b; --green-soft: rgba(79, 209, 139, .14);
+      --amber: #f0b95f; --amber-soft: rgba(240, 185, 95, .14);
+      --shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 24px rgba(0, 0, 0, .35);
     }
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; background: var(--bg); color: var(--ink);
-    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
-  body { padding: env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom)); }
-  header { position: sticky; top: 0; z-index: 5; background: var(--bg);
-    padding: 14px 16px 10px; display: flex; align-items: center; gap: 10px; }
-  header h1 { font-size: 28px; font-weight: 750; letter-spacing: -.02em; margin: 0; flex: 1; }
-  .status { font-size: 12px; color: var(--muted); text-align: right; }
-  .status b { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 5px; vertical-align: 1px; }
-  .status.live b { background: var(--green); }
-  .icon-btn { border: 0; background: var(--card); color: var(--ink); width: 38px; height: 38px; border-radius: 50%;
-    font-size: 18px; box-shadow: 0 1px 0 var(--line); }
+  html { background: var(--bg); }
+  body { margin: 0; color: var(--ink); min-height: 100vh;
+    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    background: radial-gradient(120% 50% at 50% -10%, var(--bg-glow), transparent 70%) no-repeat, var(--bg);
+    padding: env(safe-area-inset-top) 0 calc(92px + env(safe-area-inset-bottom)); }
+  button { font: inherit; cursor: pointer; }
+  button:active { transform: scale(.97); }
+  svg { display: block; }
+
+  /* header */
+  header { position: sticky; top: 0; z-index: 5; padding: 12px 20px 10px; display: flex; align-items: flex-end; gap: 12px;
+    background: linear-gradient(var(--bg) 70%, transparent); }
+  .head { flex: 1; min-width: 0; }
+  .eyebrow { font-size: 12px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 6px; height: 18px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+  .live .dot { background: var(--green); box-shadow: 0 0 0 0 var(--green); animation: pulse 2.4s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(79, 209, 139, .5); } 70% { box-shadow: 0 0 0 7px rgba(79, 209, 139, 0); } 100% { box-shadow: 0 0 0 0 rgba(79, 209, 139, 0); } }
+  h1 { font-size: 34px; line-height: 1.1; font-weight: 800; letter-spacing: -.025em; margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .round { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--card); color: var(--ink);
+    display: grid; place-items: center; box-shadow: var(--shadow); flex: none; margin-bottom: 2px; }
+  .round.spin svg { animation: spin .8s linear infinite; }
   main { padding: 0 16px; }
-  .chips { display: flex; gap: 8px; margin: 2px 0 12px; overflow-x: auto; scrollbar-width: none; }
-  .chips::-webkit-scrollbar { display: none; }
-  .chip { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px;
-    padding: 6px 12px; font-size: 14px; white-space: nowrap; }
-  .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
-    margin: 18px 4px 8px; font-weight: 650; }
-  .card { background: var(--card); border-radius: 16px; padding: 12px 14px; margin-bottom: 8px;
-    display: grid; grid-template-columns: 54px 1fr auto; gap: 4px 12px; align-items: center;
-    border: 1px solid var(--line); }
-  .card.dim { opacity: .5; }
-  .time { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
-  .meta { grid-column: 2 / 3; font-size: 13px; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .pill { font-size: 12px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
-  .pill.free { background: var(--green-soft); color: var(--green); }
-  .pill.full { background: var(--red-soft); color: var(--red); }
-  .pill.busy { background: var(--amber-soft); color: var(--amber); }
-  .actions { grid-row: 1 / span 2; grid-column: 3; display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
-  .btn { border: 0; border-radius: 10px; padding: 8px 12px; font-weight: 650; font-size: 14px; min-width: 92px; }
-  .btn.primary { background: var(--accent); color: #fff; }
-  .btn.ghost { background: transparent; color: var(--muted); padding: 4px 8px; font-weight: 500; font-size: 13px; }
-  .btn.danger { background: var(--red-soft); color: var(--red); }
-  .btn[disabled] { opacity: .5; }
-  .empty { text-align: center; color: var(--muted); padding: 48px 20px; }
-  nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: flex; justify-content: space-around;
-    background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-    border-top: 1px solid var(--line); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); }
-  nav button { flex: 1; border: 0; background: none; color: var(--muted); font-size: 11px; font-weight: 600;
-    display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; }
-  nav button span { font-size: 22px; line-height: 1; }
-  nav button[aria-current="page"] { color: var(--accent); }
-  .badge { background: var(--accent); color: #fff; border-radius: 999px; font-size: 10px; padding: 0 5px; margin-left: 2px; }
-  .toast { position: fixed; left: 16px; right: 16px; bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 9;
-    background: var(--ink); color: var(--bg); padding: 12px 14px; border-radius: 12px; font-size: 14px;
-    transform: translateY(20px); opacity: 0; transition: .25s; pointer-events: none; }
-  .toast.show { transform: none; opacity: 1; }
-  .setup { background: var(--card); border-radius: 16px; padding: 18px; border: 1px solid var(--line); margin-top: 12px; }
-  .setup input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg);
-    color: var(--ink); font-size: 15px; margin: 10px 0; }
-  .search { width: 100%; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card);
-    color: var(--ink); font-size: 16px; margin: 2px 0 10px; }
-  .row { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px; margin-bottom: 6px;
-    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; color: var(--ink); font-size: 16px; }
-  .row .grow { flex: 1; font-weight: 600; }
-  .row .sub { font-size: 12px; color: var(--muted); font-weight: 500; }
-  .back { border: 0; background: none; color: var(--accent); font-size: 16px; padding: 6px 0 2px; font-weight: 600; }
+
+  /* segmented filter */
+  .seg { display: flex; background: var(--card-2); border-radius: 12px; padding: 3px; margin: 4px 0 6px; }
+  .seg button { flex: 1; border: 0; background: none; color: var(--muted); font-size: 13px; font-weight: 600; padding: 7px 4px; border-radius: 9px; }
+  .seg button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+
+  /* day headings */
+  h2 { display: flex; align-items: baseline; gap: 8px; margin: 22px 4px 10px; font-size: 17px; font-weight: 750; letter-spacing: -.01em; }
+  h2 small { font-size: 13px; font-weight: 600; color: var(--muted); }
+  h2 .today { color: var(--accent); }
+
+  /* class card */
+  .card { background: var(--card); border-radius: var(--radius); padding: 14px 14px 14px 16px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+  .card.dim { opacity: .45; }
+  .when { width: 50px; flex: none; }
+  .when b { display: block; font-size: 19px; font-weight: 750; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+  .when span { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .body { flex: 1; min-width: 0; }
+  .title { font-weight: 650; font-size: 15.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cap { display: flex; align-items: center; gap: 8px; margin-top: 7px; font-size: 12px; font-weight: 600; }
+  .bar { flex: 1; max-width: 90px; height: 5px; border-radius: 3px; background: var(--card-2); overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 3px; background: var(--green); }
+  .cap.full .bar i { background: var(--accent); }
+  .cap.low .bar i { background: var(--amber); }
+  .cap em { font-style: normal; color: var(--green); }
+  .cap.full em { color: var(--accent); }
+  .cap.low em { color: var(--amber); }
+  .tag { white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 11.5px; font-weight: 600;
+    color: var(--amber); background: var(--amber-soft); padding: 2px 8px; border-radius: 999px; }
+  .side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; }
+  .btn { border: 0; border-radius: 999px; padding: 9px 16px; font-weight: 700; font-size: 14px; min-width: 84px; }
+  .btn.primary { color: var(--accent-ink); background: linear-gradient(135deg, var(--accent-2), var(--accent));
+    box-shadow: 0 4px 14px rgba(232, 72, 78, .35); }
+  .btn.soft { color: var(--accent); background: var(--accent-soft); }
+  .btn.wait { color: var(--ink); background: var(--card-2); }
+  .btn[disabled] { opacity: .55; box-shadow: none; }
+  .booked { display: inline-flex; align-items: center; gap: 5px; padding: 8px 12px; border-radius: 999px;
+    color: var(--green); background: var(--green-soft); font-weight: 700; font-size: 13.5px; }
+  .ghost { border: 0; background: none; color: var(--muted); padding: 2px 4px; display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; }
+
+  /* my bookings */
+  .date { width: 52px; flex: none; border-radius: 14px; background: var(--accent-soft); text-align: center; padding: 6px 0 7px; }
+  .date span { display: block; font-size: 10.5px; font-weight: 750; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); }
+  .date b { display: block; font-size: 22px; font-weight: 800; line-height: 1.05; }
+  .warn { color: var(--accent); font-weight: 600; }
+
+  /* studios */
+  .search { position: relative; margin: 4px 0 12px; }
+  .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+  .search input { width: 100%; padding: 11px 14px 11px 38px; border-radius: 12px; border: 0; background: var(--card-2);
+    color: var(--ink); font-size: 16px; outline: none; }
+  .list { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--line); overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 12px; width: 100%; border: 0; background: none; color: var(--ink);
+    text-align: left; padding: 11px 14px; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .row:active { transform: none; background: var(--card-2); }
+  .avatar { width: 40px; height: 40px; border-radius: 12px; flex: none; display: grid; place-items: center;
+    font-weight: 800; font-size: 14px; color: #fff; letter-spacing: .02em; }
+  .row .body .title { font-size: 15.5px; }
+  .chev { color: var(--muted); opacity: .6; }
+  .count { font-size: 12px; font-weight: 700; color: var(--accent); background: var(--accent-soft); padding: 3px 8px; border-radius: 999px; }
+  .label { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 20px 6px 8px; }
+  .hero { display: flex; align-items: center; gap: 14px; margin: 4px 2px 6px; }
+  .hero .avatar { width: 56px; height: 56px; border-radius: 16px; font-size: 18px; }
+  .hero h3 { margin: 0; font-size: 21px; letter-spacing: -.015em; line-height: 1.15; }
+  .back { border: 0; background: none; color: var(--accent); font-weight: 650; padding: 4px 0 8px; display: flex; align-items: center; gap: 2px; }
+
+  /* misc */
+  .empty { text-align: center; color: var(--muted); padding: 56px 24px; }
+  .empty .big { font-size: 40px; margin-bottom: 10px; opacity: .8; }
+  .empty b { display: block; color: var(--ink); font-size: 17px; margin-bottom: 4px; }
+  .note { font-size: 12.5px; color: var(--muted); margin: 16px 6px; line-height: 1.45; }
   .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent);
     border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; margin-right: 6px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .note { font-size: 13px; color: var(--muted); margin: 10px 4px; }
+  .updating { display: flex; align-items: center; font-size: 12.5px; color: var(--muted); margin: 6px 4px 0; }
+
+  /* tab bar */
+  nav { position: fixed; left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 6;
+    display: flex; padding: 6px; border-radius: 26px; border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--card) 82%, transparent); backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4); box-shadow: 0 8px 30px rgba(0, 0, 0, .18); }
+  nav button { position: relative; flex: 1; border: 0; background: none; color: var(--muted); font-size: 10.5px; font-weight: 650;
+    display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 0 6px; border-radius: 20px; }
+  nav button[aria-current="page"] { color: var(--accent); background: var(--accent-soft); }
+  .badge { position: absolute; top: 3px; left: calc(50% + 6px); background: var(--accent); color: #fff; border-radius: 999px;
+    font-size: 10px; font-weight: 800; min-width: 17px; height: 17px; line-height: 17px; padding: 0 4px; font-style: normal; }
+  .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 9; max-width: calc(100% - 40px);
+    background: color-mix(in srgb, var(--ink) 92%, transparent); color: var(--bg); padding: 11px 16px; border-radius: 999px;
+    font-size: 14px; font-weight: 600; transform: translate(-50%, 16px); opacity: 0; transition: .25s; pointer-events: none;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+  .setup { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-top: 12px; }
+  .setup input { width: 100%; padding: 12px; border-radius: 12px; border: 0; background: var(--card-2); color: var(--ink); font-size: 15px; margin: 10px 0; }
 </style>
 </head>
 <body>
 <header>
-  <h1 id="title">Red Light</h1>
-  <div class="status" id="status"><b></b>—</div>
-  <button class="icon-btn" id="refresh" aria-label="Refresh">↻</button>
+  <div class="head">
+    <div class="eyebrow" id="status"><span class="dot"></span><span id="statusText">—</span></div>
+    <h1 id="title">Red Light</h1>
+  </div>
+  <button class="round" id="refresh" aria-label="Refresh">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+  </button>
 </header>
 <main id="main"></main>
 <nav id="nav">
-  <button data-tab="spots" aria-current="page"><span>🔴</span>Red Light</button>
-  <button data-tab="studios"><span>🏃</span>Studios</button>
-  <button data-tab="specials"><span>✨</span>Specials</button>
-  <button data-tab="mine"><span>📅</span>My bookings<i class="badge" id="mineCount" hidden></i></button>
+  <button data-tab="spots" aria-current="page">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+    Red Light</button>
+  <button data-tab="studios">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13"/><path d="M9.5 21v-5h5v5"/></svg>
+    Studios</button>
+  <button data-tab="specials">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.1 5.3L19.5 10l-5.4 1.7L12 17l-2.1-5.3L4.5 10l5.4-1.7z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>
+    Specials</button>
+  <button data-tab="mine">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M9 15l2 2 4-4"/></svg>
+    Bookings<i class="badge" id="mineCount" hidden></i></button>
 </nav>
 <div class="toast" id="toast"></div>
 
@@ -109,13 +183,13 @@
 /*
   Red Light — a tiny front end for the Wellpass monitor that runs on the VM.
   The phone can't reach the VM, so both talk through two private ntfy.sh topics:
-    data  (VM → app): a compact JSON snapshot, re-published whenever something changes
-    reply (app → VM): commands "book <class>", "cancel <booking>", "ignore <class>", "unignore <class>", "refresh"
+    data  (VM → app): compact JSON snapshots, studio schedules and an hourly bundle (attachment)
+    reply (app → VM): "book <class>", "cancel <booking>", "ignore|unignore <class>", "refresh", "studio <slug>", "favs"
   The topic names live only in this device's storage (they arrive in the link's #fragment,
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-13.1';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-13.2';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -125,8 +199,9 @@ async function checkForUpdate() {
     if (live && live !== VERSION) location.reload();
   } catch {}
 }
-const DIAS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const DIAS_LARGO = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAYS_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const $ = (s) => document.querySelector(s);
 
 const store = {
@@ -147,14 +222,63 @@ let studio = null, query = '', asked = {};                     // open studio sl
 const parseLocal = (s) => { const [d, t] = s.split('T'); const [y, m, dd] = d.split('-').map(Number); const [h, mi] = t.split(':').map(Number); return new Date(y, m - 1, dd, h, mi); };
 const hhmm = (s) => s.slice(11, 16);
 const dayKey = (s) => s.slice(0, 10);
-const dayLabel = (s) => {
+const daysFromToday = (s) => {
   const d = parseLocal(s), today = new Date(); today.setHours(0, 0, 0, 0);
-  const diff = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - today) / 864e5);
-  const base = `${DIAS_LARGO[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}`;
-  return diff === 0 ? `Today · ${base}` : diff === 1 ? `Tomorrow · ${base}` : base;
+  return Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - today) / 864e5);
 };
-const shortDay = (s) => { const d = parseLocal(s); return `${DIAS[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}`; };
+const dayHeading = (s) => {
+  const d = parseLocal(s), diff = daysFromToday(s), date = `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+  if (diff === 0) return `<h2><span class="today">Today</span><small>${DAYS_LONG[d.getDay()]} · ${date}</small></h2>`;
+  if (diff === 1) return `<h2>Tomorrow<small>${DAYS_LONG[d.getDay()]} · ${date}</small></h2>`;
+  return `<h2>${DAYS_LONG[d.getDay()]}<small>${date}</small></h2>`;
+};
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const ICON = {
+  check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
+  eyeOff: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M10.6 5.2A9.9 9.9 0 0 1 12 5c5 0 9 5 10 7-.5 1-1.7 2.8-3.4 4.3M6.3 6.6C4.3 8 3 10.1 2 12c1 2 5 7 10 7 1.7 0 3.2-.5 4.6-1.3M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>',
+  eye: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  clash: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  chev: '<svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  back: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+};
+
+// stable colour per studio, so each one is recognisable at a glance
+function avatar(name, cls = 'avatar') {
+  let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  const words = name.replace(/München|Munich|Studio(s)?\b/gi, '').trim().split(/[\s\-–·&]+/).filter(Boolean);
+  const ini = ((words[0] || name)[0] + (words[1] ? words[1][0] : (words[0] || '')[1] || '')).toUpperCase();
+  return `<div class="${cls}" style="background:linear-gradient(135deg,hsl(${h} 70% 62%),hsl(${(h + 35) % 360} 65% 48%))">${esc(ini)}</div>`;
+}
+
+function capacity(booked, cap) {
+  const free = cap - booked, pct = cap ? Math.min(100, Math.round((booked / cap) * 100)) : 0;
+  const cls = free <= 0 ? 'full' : free <= Math.max(1, Math.round(cap * 0.15)) ? 'low' : '';
+  const label = free <= 0 ? 'Full' : `${free} spot${free > 1 ? 's' : ''} left`;
+  return `<div class="cap ${cls}"><div class="bar"><i style="width:${pct}%"></i></div><em>${label}</em></div>`;
+}
+
+function bookButton(id, booked, cap, bookedIds) {
+  if (bookedIds.has(id)) return `<span class="booked">${ICON.check}Booked</span>`;
+  const wait = pending[id], free = cap - booked;
+  if (wait) return '<button class="btn wait" disabled>Sent…</button>';
+  return free > 0 ? `<button class="btn primary" data-book="${id}">Book</button>`
+                  : `<button class="btn soft" data-book="${id}">Waitlist</button>`;
+}
+
+function classCard({ id, start, name, sub = '', booked, cap, bookedIds, extra = '', dim = false, side = '' }) {
+  return `<div class="card${dim ? ' dim' : ''}">
+    <div class="when"><b>${hhmm(start)}</b></div>
+    <div class="body"><div class="title">${esc(name)}</div>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}
+      ${capacity(booked, cap)}${extra}</div>
+    <div class="side">${bookButton(id, booked, cap, bookedIds)}${side}</div>
+  </div>`;
+}
+
+function empty(icon, title, text) {
+  return `<div class="empty"><div class="big">${icon}</div><b>${title}</b>${text}</div>`;
+}
 
 function toast(msg, ms = 2600) {
   const t = $('#toast'); t.textContent = msg; t.classList.add('show');
@@ -172,11 +296,11 @@ async function send(cmd, label) {
 }
 
 function setStatus() {
-  const el = $('#status');
-  if (!snap) { el.className = 'status'; el.innerHTML = '<b></b>waiting for data…'; return; }
+  const el = $('#status'), txt = $('#statusText');
+  if (!snap) { el.className = 'eyebrow'; txt.textContent = 'Connecting…'; return; }
   const age = (Date.now() - parseLocal(snap.at)) / 6e4;
-  el.className = 'status' + (age < 20 ? ' live' : '');
-  el.innerHTML = `<b></b>${age < 1 ? 'just now' : age < 60 ? `${Math.round(age)} min ago` : Math.round(age / 60) + ' h ago'}`;
+  el.className = 'eyebrow' + (age < 20 ? ' live' : '');
+  txt.textContent = 'Updated ' + (age < 1 ? 'just now' : age < 60 ? `${Math.round(age)} min ago` : Math.round(age / 60) + ' h ago');
 }
 
 function render() {
@@ -187,34 +311,27 @@ function render() {
   const mc = $('#mineCount'); mc.hidden = !mine.length; mc.textContent = mine.length;
 
   if (!cfg.d || !cfg.r) return renderSetup(main);
-  if (!snap) { main.innerHTML = '<p class="empty">Loading…<br><br>If it takes a while, tap ↻.</p>'; return; }
+  if (!snap) { main.innerHTML = empty('<span class="spinner" style="width:28px;height:28px;border-width:3px"></span>', 'Loading', 'If it takes a while, tap ↻.'); return; }
 
   const bookedIds = new Set(mine.map((m) => m[1]));
   if (tab === 'studios') return renderStudios(main, bookedIds);
+
   if (tab === 'spots') {
     $('#title').textContent = 'Red Light';
     let rows = snap.spots;
     if (filter === 'fits') rows = rows.filter((s) => s[5] && !s[6]);
     if (filter === 'free') rows = rows.filter((s) => s[4] - s[3] > 0 && !s[6]);
-    let html = `<div class="chips">
-      <button class="chip" data-filter="fits" aria-pressed="${filter === 'fits'}">Fits my calendar</button>
-      <button class="chip" data-filter="free" aria-pressed="${filter === 'free'}">Spots free</button>
-      <button class="chip" data-filter="all" aria-pressed="${filter === 'all'}">All</button></div>`;
-    if (!rows.length) html += '<p class="empty">Nothing here with this filter.</p>';
+    let html = `<div class="seg">
+      <button data-filter="fits" aria-pressed="${filter === 'fits'}">Fits calendar</button>
+      <button data-filter="free" aria-pressed="${filter === 'free'}">Spots free</button>
+      <button data-filter="all" aria-pressed="${filter === 'all'}">All</button></div>`;
+    if (!rows.length) html += empty('🌙', 'Nothing here', 'No classes match this filter right now.');
     let day = '';
     for (const [id, name, start, booked, cap, fits, ignored] of rows) {
-      if (dayKey(start) !== day) { day = dayKey(start); html += `<h2>${dayLabel(start)}</h2>`; }
-      const free = cap - booked, mineHere = bookedIds.has(id), wait = pending[id];
-      html += `<div class="card${ignored ? ' dim' : ''}">
-        <div class="time">${hhmm(start)}</div>
-        <div class="name">${esc(name)}</div>
-        <div class="actions">${
-          mineHere ? '<span class="pill free">Booked</span>'
-          : `<button class="btn primary" data-book="${id}" ${wait ? 'disabled' : ''}>${wait ? 'Sent…' : free > 0 ? 'Book' : 'Waitlist'}</button>`
-        }<button class="btn ghost" data-${ignored ? 'unignore' : 'ignore'}="${id}">${ignored ? 'Watch again' : 'Ignore'}</button></div>
-        <div class="meta">${free > 0 ? `<span class="pill free">${free} free</span>` : '<span class="pill full">Full</span>'}
-          ${fits ? '' : '<span class="pill busy">Clashes with calendar</span>'}<span>${booked}/${cap}</span></div>
-      </div>`;
+      if (dayKey(start) !== day) { day = dayKey(start); html += dayHeading(start); }
+      html += classCard({ id, start, name, booked, cap, bookedIds, dim: ignored,
+        extra: fits ? '' : `<span class="tag">${ICON.clash}Busy then</span>`,
+        side: bookedIds.has(id) ? '' : `<button class="ghost" data-${ignored ? 'unignore' : 'ignore'}="${id}">${ignored ? ICON.eye + 'Watch' : ICON.eyeOff + 'Ignore'}</button>` });
     }
     html += '<p class="note">Session München · red light classes cost +10 € with Wellpass. Free cancellation up to 12 h before.</p>';
     main.innerHTML = html;
@@ -223,33 +340,27 @@ function render() {
   if (tab === 'specials') {
     $('#title').textContent = 'Specials';
     const rows = snap.specials || [];
-    let html = rows.length ? '' : '<p class="empty">No upcoming specials at your favourite studios.<br><br>Checked every hour.</p>';
+    let html = rows.length ? '' : empty('✨', 'No specials yet', 'Your favourite studios are checked every hour.');
     let day = '';
     for (const [id, start, gym, name, booked, cap] of rows) {
-      if (dayKey(start) !== day) { day = dayKey(start); html += `<h2>${dayLabel(start)}</h2>`; }
-      const free = cap - booked, wait = pending[id];
-      html += `<div class="card">
-        <div class="time">${hhmm(start)}</div>
-        <div class="name">${esc(name)}</div>
-        <div class="actions">${bookedIds.has(id) ? '<span class="pill free">Booked</span>'
-          : `<button class="btn primary" data-book="${id}" ${wait ? 'disabled' : ''}>${wait ? 'Sent…' : free > 0 ? 'Book' : 'Waitlist'}</button>`}</div>
-        <div class="meta"><span>${esc(gym)}</span><span>· ${booked}/${cap}</span></div>
-      </div>`;
+      if (dayKey(start) !== day) { day = dayKey(start); html += dayHeading(start); }
+      html += classCard({ id, start, name, sub: gym, booked, cap, bookedIds });
     }
     main.innerHTML = html;
   }
 
   if (tab === 'mine') {
-    $('#title').textContent = 'My bookings';
-    let html = mine.length ? '' : '<p class="empty">No upcoming bookings.</p>';
+    $('#title').textContent = 'Bookings';
+    let html = mine.length ? '' : empty('🗓️', 'No upcoming bookings', 'Book a class and it shows up here.');
     for (const [bid, cid, start, name, gym, status] of mine) {
-      const hoursLeft = (parseLocal(start) - Date.now()) / 36e5, wait = pending[bid];
+      const d = parseLocal(start), hoursLeft = (d - Date.now()) / 36e5, wait = pending[bid];
       html += `<div class="card">
-        <div class="time">${hhmm(start)}</div>
-        <div class="name">${esc(name)}</div>
-        <div class="actions"><button class="btn danger" data-cancel="${bid}" data-late="${hoursLeft < 12 ? 1 : 0}" ${wait ? 'disabled' : ''}>${wait ? 'Sent…' : 'Cancel'}</button></div>
-        <div class="meta"><span>${shortDay(start)}</span><span>· ${esc(gym)}</span>${status === 'WAITING_LIST' ? '<span class="pill busy">Waitlist</span>' : ''}
-          ${hoursLeft < 12 ? '<span class="pill full">&lt;12 h: cancelling costs 5 €</span>' : ''}</div>
+        <div class="date"><span>${DAYS[d.getDay()]}</span><b>${d.getDate()}</b><span style="color:var(--muted)">${MONTHS[d.getMonth()]}</span></div>
+        <div class="body"><div class="title">${esc(name)}</div>
+          <div class="sub">${hhmm(start)} · ${esc(gym)}</div>
+          ${status === 'WAITING_LIST' ? '<span class="tag">On the waitlist</span>' : ''}
+          ${hoursLeft < 12 ? '<div class="sub warn">Less than 12 h: cancelling costs 5 €</div>' : ''}</div>
+        <div class="side"><button class="btn ${wait ? 'wait' : 'soft'}" data-cancel="${bid}" data-late="${hoursLeft < 12 ? 1 : 0}" ${wait ? 'disabled' : ''}>${wait ? 'Sent…' : 'Cancel'}</button></div>
       </div>`;
     }
     main.innerHTML = html;
@@ -261,20 +372,29 @@ function renderStudios(main, bookedIds) {
     $('#title').textContent = 'Studios';
     if (!favs) {
       if (!asked.favs) { asked.favs = Date.now(); send('favs', 'Fetching your favourite studios…'); }
-      main.innerHTML = '<p class="empty"><span class="spinner"></span>Loading your favourites…</p>';
+      main.innerHTML = empty('<span class="spinner" style="width:28px;height:28px;border-width:3px"></span>', 'Loading your favourites', '');
       return;
     }
     const q = query.toLowerCase();
-    const hasClasses = (slug) => (studios[slug] ? (studios[slug].c.length ? 0 : 2) : 1);  // bookable first, then unknown, then check-in only
+    const kind = (slug) => (studios[slug] ? (studios[slug].c.length ? 0 : 2) : 1);  // bookable, unknown, check-in only
     const list = favs.g.filter(([, n]) => !q || n.toLowerCase().includes(q))
-      .sort((x, y) => hasClasses(x[0]) - hasClasses(y[0]) || x[1].localeCompare(y[1]));
-    let html = `<input class="search" id="q" placeholder="Search studios" value="${esc(query)}" autocomplete="off">`;
-    for (const [slug, name] of list) {
-      const c = studios[slug];
-      const sub = c ? (c.c.length ? `${c.c.length} classes this week` : 'no bookable classes') : '';
-      html += `<button class="row" data-studio="${slug}"><span class="grow">${esc(name)}<br><span class="sub">${sub}</span></span><span>›</span></button>`;
+      .sort((x, y) => kind(x[0]) - kind(y[0]) || x[1].localeCompare(y[1]));
+    let html = `<label class="search">${ICON.search}<input id="q" placeholder="Search studios" value="${esc(query)}" autocomplete="off"></label>`;
+    const groups = [[0, 'With classes'], [1, 'Not loaded yet'], [2, 'Check-in only']];
+    for (const [k, label] of groups) {
+      const part = list.filter(([slug]) => kind(slug) === k);
+      if (!part.length) continue;
+      html += `<div class="label">${label}</div><div class="list">`;
+      for (const [slug, name] of part) {
+        const c = studios[slug];
+        html += `<button class="row" data-studio="${slug}">${avatar(name)}
+          <div class="body"><div class="title">${esc(name.replace(/ München$/, ''))}</div>
+          ${c && c.c.length ? `<div class="sub">${c.c.filter((r) => r[4] - r[3] > 0).length} with spots this week</div>` : ''}</div>
+          ${c && c.c.length ? `<span class="count">${c.c.length}</span>` : ''}${ICON.chev}</button>`;
+      }
+      html += '</div>';
     }
-    if (!list.length) html += '<p class="empty">No favourite with that name.</p>';
+    if (!list.length) html += empty('🔎', 'No match', 'None of your favourites has that name.');
     html += '<p class="note">Your Wellpass favourites. To change them, tap ♡ in the Wellpass app.</p>';
     main.innerHTML = html;
     const qi = $('#q'); qi.oninput = () => { query = qi.value; const pos = qi.selectionStart; renderStudios(main, bookedIds); const n = $('#q'); n.focus(); n.setSelectionRange(pos, pos); };
@@ -285,31 +405,26 @@ function renderStudios(main, bookedIds) {
   const c = studios[studio];
   const stale = !c || (Date.now() - parseLocal(c.at)) / 6e4 > 10;
   if (stale && (!asked[studio] || Date.now() - asked[studio] > 60000)) { asked[studio] = Date.now(); send(`studio ${studio}`, c ? null : 'Fetching the schedule…'); }
-  let html = `<button class="back" data-back="1">‹ All</button><h3 style="margin:4px 4px 0;font-size:20px">${esc(name)}</h3>`;
-  if (!c) { main.innerHTML = html + '<p class="empty"><span class="spinner"></span>Fetching the schedule…<br>A couple of seconds.</p>'; return; }
-  if (stale) html += '<p class="note"><span class="spinner"></span>Updating…</p>';
-  if (!c.c.length) html += '<p class="empty">This studio has no bookable classes in the app (check-in only).</p>';
+  let html = `<button class="back" data-back="1">${ICON.back}All studios</button>
+    <div class="hero">${avatar(name)}<div><h3>${esc(name)}</h3>
+      <div class="sub">${c ? (c.c.length ? `${c.c.length} classes in the next 7 days` : 'Check-in only') : 'Loading…'}</div></div></div>`;
+  if (stale && c) html += '<div class="updating"><span class="spinner"></span>Updating…</div>';
+  if (!c) { main.innerHTML = html + empty('<span class="spinner" style="width:28px;height:28px;border-width:3px"></span>', 'Fetching the schedule', 'A couple of seconds.'); return; }
+  if (!c.c.length) html += empty('🚪', 'No bookable classes', 'This studio works with check-in only.');
   let day = '';
   for (const [id, start, cname, booked, cap] of c.c) {
-    if (dayKey(start) !== day) { day = dayKey(start); html += `<h2>${dayLabel(start)}</h2>`; }
-    const free = cap - booked, wait = pending[id];
-    html += `<div class="card">
-      <div class="time">${hhmm(start)}</div>
-      <div class="name">${esc(cname)}</div>
-      <div class="actions">${bookedIds.has(id) ? '<span class="pill free">Booked</span>'
-        : `<button class="btn primary" data-book="${id}" ${wait ? 'disabled' : ''}>${wait ? 'Sent…' : free > 0 ? 'Book' : 'Waitlist'}</button>`}</div>
-      <div class="meta">${free > 0 ? `<span class="pill free">${free} free</span>` : '<span class="pill full">Full</span>'}<span>${booked}/${cap}</span></div>
-    </div>`;
+    if (dayKey(start) !== day) { day = dayKey(start); html += dayHeading(start); }
+    html += classCard({ id, start, name: cname, booked, cap, bookedIds });
   }
   if (c.t) html += '<p class="note">Only the first days fit in one message; see the Wellpass app for more.</p>';
-  html += '<p class="note">"(+€)" = surcharge for Wellpass members. Max. 1 booking per day and studio.</p>';
+  if (c.c.length) html += '<p class="note">"(+€)" = surcharge for Wellpass members. Max. 1 booking per day and studio.</p>';
   main.innerHTML = html;
 }
 
 function renderSetup(main) {
   $('#title').textContent = 'Red Light';
   main.innerHTML = `<div class="setup"><b>The app isn’t connected yet</b>
-    <p class="note">Open this page from the link in your notification (the one ending in <code>#d=…&amp;r=…</code>), or paste it here:</p>
+    <p class="note" style="margin:8px 0">Open this page from the link in your notification (the one ending in <code>#d=…&amp;r=…</code>), or paste it here:</p>
     <input id="link" placeholder="https://…#d=…&r=…" autocomplete="off">
     <button class="btn primary" id="save">Connect</button></div>`;
   $('#save').onclick = () => {
@@ -346,6 +461,7 @@ $('#nav').addEventListener('click', (e) => {
 });
 $('#refresh').onclick = () => {
   if (!cfg.r) return;
+  const btn = $('#refresh'); btn.classList.add('spin'); setTimeout(() => btn.classList.remove('spin'), 1800);
   if (tab === 'studios' && studio) { asked[studio] = Date.now(); send(`studio ${studio}`, 'Refreshing this studio…'); }
   else if (tab === 'studios' && !favs) send('favs', 'Fetching your favourites…');
   else send('refresh', 'Asking for fresh data…');
@@ -363,7 +479,7 @@ function accept(msg) {
     if (s.v !== 1) return;
     if (!snap || s.at >= snap.at) {
       snap = s;
-      // drop "Enviado…" once the VM has had time to act (or the new snapshot shows it done)
+      // drop "Sent…" once the VM has had time to act (or the new snapshot shows it done)
       for (const k in pending) if (Date.now() - pending[k] > 25000) delete pending[k];
       store.set('snap', msg);
       render();
