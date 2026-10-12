@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -94,14 +94,14 @@
 <header>
   <h1 id="title">Red Light</h1>
   <div class="status" id="status"><b></b>—</div>
-  <button class="icon-btn" id="refresh" aria-label="Actualizar">↻</button>
+  <button class="icon-btn" id="refresh" aria-label="Refresh">↻</button>
 </header>
 <main id="main"></main>
 <nav id="nav">
   <button data-tab="spots" aria-current="page"><span>🔴</span>Red Light</button>
-  <button data-tab="studios"><span>🏃</span>Estudios</button>
-  <button data-tab="specials"><span>✨</span>Especiales</button>
-  <button data-tab="mine"><span>📅</span>Mis reservas<i class="badge" id="mineCount" hidden></i></button>
+  <button data-tab="studios"><span>🏃</span>Studios</button>
+  <button data-tab="specials"><span>✨</span>Specials</button>
+  <button data-tab="mine"><span>📅</span>My bookings<i class="badge" id="mineCount" hidden></i></button>
 </nav>
 <div class="toast" id="toast"></div>
 
@@ -115,8 +115,8 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-const DIAS_LARGO = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DIAS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DIAS_LARGO = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const $ = (s) => document.querySelector(s);
 
 const store = {
@@ -141,7 +141,7 @@ const dayLabel = (s) => {
   const d = parseLocal(s), today = new Date(); today.setHours(0, 0, 0, 0);
   const diff = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - today) / 864e5);
   const base = `${DIAS_LARGO[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}`;
-  return diff === 0 ? `Hoy · ${base}` : diff === 1 ? `Mañana · ${base}` : base;
+  return diff === 0 ? `Today · ${base}` : diff === 1 ? `Tomorrow · ${base}` : base;
 };
 const shortDay = (s) => { const d = parseLocal(s); return `${DIAS[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}`; };
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -157,16 +157,16 @@ async function send(cmd, label) {
     if (!r.ok) throw new Error(r.status);
     toast(label);
   } catch (e) {
-    toast('No se pudo enviar. ¿Tienes internet?');
+    toast('Couldn’t send. Are you online?');
   }
 }
 
 function setStatus() {
   const el = $('#status');
-  if (!snap) { el.className = 'status'; el.innerHTML = '<b></b>esperando datos…'; return; }
+  if (!snap) { el.className = 'status'; el.innerHTML = '<b></b>waiting for data…'; return; }
   const age = (Date.now() - parseLocal(snap.at)) / 6e4;
   el.className = 'status' + (age < 20 ? ' live' : '');
-  el.innerHTML = `<b></b>${age < 1 ? 'ahora' : age < 60 ? `hace ${Math.round(age)} min` : 'hace ' + Math.round(age / 60) + ' h'}`;
+  el.innerHTML = `<b></b>${age < 1 ? 'just now' : age < 60 ? `${Math.round(age)} min ago` : Math.round(age / 60) + ' h ago'}`;
 }
 
 function render() {
@@ -177,7 +177,7 @@ function render() {
   const mc = $('#mineCount'); mc.hidden = !mine.length; mc.textContent = mine.length;
 
   if (!cfg.d || !cfg.r) return renderSetup(main);
-  if (!snap) { main.innerHTML = '<p class="empty">Cargando…<br><br>Si tarda, pulsa ↻: el ordenador (la VM) responde en unos 20 segundos.</p>'; return; }
+  if (!snap) { main.innerHTML = '<p class="empty">Loading…<br><br>If it takes a while, tap ↻ — the VM answers in about 20 seconds.</p>'; return; }
 
   const bookedIds = new Set(mine.map((m) => m[1]));
   if (tab === 'studios') return renderStudios(main, bookedIds);
@@ -187,10 +187,10 @@ function render() {
     if (filter === 'fits') rows = rows.filter((s) => s[5] && !s[6]);
     if (filter === 'free') rows = rows.filter((s) => s[4] - s[3] > 0 && !s[6]);
     let html = `<div class="chips">
-      <button class="chip" data-filter="fits" aria-pressed="${filter === 'fits'}">Encaja en mi calendario</button>
-      <button class="chip" data-filter="free" aria-pressed="${filter === 'free'}">Con plazas</button>
-      <button class="chip" data-filter="all" aria-pressed="${filter === 'all'}">Todas</button></div>`;
-    if (!rows.length) html += '<p class="empty">Nada por aquí con este filtro.</p>';
+      <button class="chip" data-filter="fits" aria-pressed="${filter === 'fits'}">Fits my calendar</button>
+      <button class="chip" data-filter="free" aria-pressed="${filter === 'free'}">Spots free</button>
+      <button class="chip" data-filter="all" aria-pressed="${filter === 'all'}">All</button></div>`;
+    if (!rows.length) html += '<p class="empty">Nothing here with this filter.</p>';
     let day = '';
     for (const [id, name, start, booked, cap, fits, ignored] of rows) {
       if (dayKey(start) !== day) { day = dayKey(start); html += `<h2>${dayLabel(start)}</h2>`; }
@@ -199,21 +199,21 @@ function render() {
         <div class="time">${hhmm(start)}</div>
         <div class="name">${esc(name)}</div>
         <div class="actions">${
-          mineHere ? '<span class="pill free">Reservada</span>'
-          : `<button class="btn primary" data-book="${id}" ${wait ? 'disabled' : ''}>${wait ? 'Enviado…' : free > 0 ? 'Reservar' : 'Lista espera'}</button>`
-        }<button class="btn ghost" data-${ignored ? 'unignore' : 'ignore'}="${id}">${ignored ? 'Reactivar' : 'Ignorar'}</button></div>
-        <div class="meta">${free > 0 ? `<span class="pill free">${free} libre${free > 1 ? 's' : ''}</span>` : '<span class="pill full">Llena</span>'}
-          ${fits ? '' : '<span class="pill busy">Choca con tu calendario</span>'}<span>${booked}/${cap}</span></div>
+          mineHere ? '<span class="pill free">Booked</span>'
+          : `<button class="btn primary" data-book="${id}" ${wait ? 'disabled' : ''}>${wait ? 'Sent…' : free > 0 ? 'Book' : 'Waitlist'}</button>`
+        }<button class="btn ghost" data-${ignored ? 'unignore' : 'ignore'}="${id}">${ignored ? 'Watch again' : 'Ignore'}</button></div>
+        <div class="meta">${free > 0 ? `<span class="pill free">${free} free</span>` : '<span class="pill full">Full</span>'}
+          ${fits ? '' : '<span class="pill busy">Clashes with calendar</span>'}<span>${booked}/${cap}</span></div>
       </div>`;
     }
-    html += '<p class="note">Session München · Red light lleva +10 € con Wellpass. Cancelar gratis hasta 12 h antes.</p>';
+    html += '<p class="note">Session München · red light classes cost +10 € with Wellpass. Free cancellation up to 12 h before.</p>';
     main.innerHTML = html;
   }
 
   if (tab === 'specials') {
-    $('#title').textContent = 'Especiales';
+    $('#title').textContent = 'Specials';
     const rows = snap.specials || [];
-    let html = rows.length ? '' : '<p class="empty">Ningún especial próximo en tus estudios favoritos.<br><br>Se revisan cada hora.</p>';
+    let html = rows.length ? '' : '<p class="empty">No upcoming specials at your favourite studios.<br><br>Checked every hour.</p>';
     let day = '';
     for (const [id, start, gym, name, booked, cap] of rows) {
       if (dayKey(start) !== day) { day = dayKey(start); html += `<h2>${dayLabel(start)}</h2>`; }
@@ -221,8 +221,8 @@ function render() {
       html += `<div class="card">
         <div class="time">${hhmm(start)}</div>
         <div class="name">${esc(name)}</div>
-        <div class="actions">${bookedIds.has(id) ? '<span class="pill free">Reservada</span>'
-          : `<button class="btn primary" data-book="${id}" ${wait ? 'disabled' : ''}>${wait ? 'Enviado…' : free > 0 ? 'Reservar' : 'Lista espera'}</button>`}</div>
+        <div class="actions">${bookedIds.has(id) ? '<span class="pill free">Booked</span>'
+          : `<button class="btn primary" data-book="${id}" ${wait ? 'disabled' : ''}>${wait ? 'Sent…' : free > 0 ? 'Book' : 'Waitlist'}</button>`}</div>
         <div class="meta"><span>${esc(gym)}</span><span>· ${booked}/${cap}</span></div>
       </div>`;
     }
@@ -230,16 +230,16 @@ function render() {
   }
 
   if (tab === 'mine') {
-    $('#title').textContent = 'Mis reservas';
-    let html = mine.length ? '' : '<p class="empty">No tienes reservas próximas.</p>';
+    $('#title').textContent = 'My bookings';
+    let html = mine.length ? '' : '<p class="empty">No upcoming bookings.</p>';
     for (const [bid, cid, start, name, gym, status] of mine) {
       const hoursLeft = (parseLocal(start) - Date.now()) / 36e5, wait = pending[bid];
       html += `<div class="card">
         <div class="time">${hhmm(start)}</div>
         <div class="name">${esc(name)}</div>
-        <div class="actions"><button class="btn danger" data-cancel="${bid}" data-late="${hoursLeft < 12 ? 1 : 0}" ${wait ? 'disabled' : ''}>${wait ? 'Enviado…' : 'Cancelar'}</button></div>
-        <div class="meta"><span>${shortDay(start)}</span><span>· ${esc(gym)}</span>${status === 'WAITING_LIST' ? '<span class="pill busy">Lista de espera</span>' : ''}
-          ${hoursLeft < 12 ? '<span class="pill full">&lt;12 h: cancelar cuesta 5 €</span>' : ''}</div>
+        <div class="actions"><button class="btn danger" data-cancel="${bid}" data-late="${hoursLeft < 12 ? 1 : 0}" ${wait ? 'disabled' : ''}>${wait ? 'Sent…' : 'Cancel'}</button></div>
+        <div class="meta"><span>${shortDay(start)}</span><span>· ${esc(gym)}</span>${status === 'WAITING_LIST' ? '<span class="pill busy">Waitlist</span>' : ''}
+          ${hoursLeft < 12 ? '<span class="pill full">&lt;12 h: cancelling costs 5 €</span>' : ''}</div>
       </div>`;
     }
     main.innerHTML = html;
@@ -248,35 +248,35 @@ function render() {
 
 function renderStudios(main, bookedIds) {
   if (!studio) {
-    $('#title').textContent = 'Estudios';
+    $('#title').textContent = 'Studios';
     if (!favs) {
-      if (!asked.favs) { asked.favs = Date.now(); send('favs', 'Pidiendo tus estudios favoritos…'); }
-      main.innerHTML = '<p class="empty"><span class="spinner"></span>Cargando tus favoritos… (~20 s)</p>';
+      if (!asked.favs) { asked.favs = Date.now(); send('favs', 'Fetching your favourite studios…'); }
+      main.innerHTML = '<p class="empty"><span class="spinner"></span>Loading your favourites… (~20 s)</p>';
       return;
     }
     const q = query.toLowerCase();
     const list = favs.g.filter(([, n]) => !q || n.toLowerCase().includes(q));
-    let html = `<input class="search" id="q" placeholder="Buscar estudio" value="${esc(query)}" autocomplete="off">`;
+    let html = `<input class="search" id="q" placeholder="Search studios" value="${esc(query)}" autocomplete="off">`;
     for (const [slug, name] of list) {
       const c = studios[slug];
-      const sub = c ? (c.c.length ? `${c.c.length} clases esta semana` : 'sin clases reservables') : '';
+      const sub = c ? (c.c.length ? `${c.c.length} classes this week` : 'no bookable classes') : '';
       html += `<button class="row" data-studio="${slug}"><span class="grow">${esc(name)}<br><span class="sub">${sub}</span></span><span>›</span></button>`;
     }
-    if (!list.length) html += '<p class="empty">Ningún favorito con ese nombre.</p>';
-    html += '<p class="note">Tus favoritos de Wellpass. Para cambiarlos, márcalos ♡ en la app de Wellpass.</p>';
+    if (!list.length) html += '<p class="empty">No favourite with that name.</p>';
+    html += '<p class="note">Your Wellpass favourites. To change them, tap ♡ in the Wellpass app.</p>';
     main.innerHTML = html;
     const qi = $('#q'); qi.oninput = () => { query = qi.value; const pos = qi.selectionStart; renderStudios(main, bookedIds); const n = $('#q'); n.focus(); n.setSelectionRange(pos, pos); };
     return;
   }
   const name = (favs?.g.find((f) => f[0] === studio) || [, studio])[1];
-  $('#title').textContent = 'Estudios';
+  $('#title').textContent = 'Studios';
   const c = studios[studio];
   const stale = !c || (Date.now() - parseLocal(c.at)) / 6e4 > 10;
-  if (stale && (!asked[studio] || Date.now() - asked[studio] > 60000)) { asked[studio] = Date.now(); send(`studio ${studio}`, 'Pidiendo el horario… (~20 s)'); }
-  let html = `<button class="back" data-back="1">‹ Todos</button><h3 style="margin:4px 4px 0;font-size:20px">${esc(name)}</h3>`;
-  if (!c) { main.innerHTML = html + '<p class="empty"><span class="spinner"></span>Pidiendo el horario a la VM…<br>Tarda unos 20 segundos.</p>'; return; }
-  if (stale) html += '<p class="note"><span class="spinner"></span>Actualizando…</p>';
-  if (!c.c.length) html += '<p class="empty">Este estudio no tiene clases reservables en la app (solo check-in).</p>';
+  if (stale && (!asked[studio] || Date.now() - asked[studio] > 60000)) { asked[studio] = Date.now(); send(`studio ${studio}`, 'Fetching the schedule… (~20 s)'); }
+  let html = `<button class="back" data-back="1">‹ All</button><h3 style="margin:4px 4px 0;font-size:20px">${esc(name)}</h3>`;
+  if (!c) { main.innerHTML = html + '<p class="empty"><span class="spinner"></span>Asking the VM for the schedule…<br>Takes about 20 seconds.</p>'; return; }
+  if (stale) html += '<p class="note"><span class="spinner"></span>Updating…</p>';
+  if (!c.c.length) html += '<p class="empty">This studio has no bookable classes in the app (check-in only).</p>';
   let day = '';
   for (const [id, start, cname, booked, cap] of c.c) {
     if (dayKey(start) !== day) { day = dayKey(start); html += `<h2>${dayLabel(start)}</h2>`; }
@@ -284,26 +284,26 @@ function renderStudios(main, bookedIds) {
     html += `<div class="card">
       <div class="time">${hhmm(start)}</div>
       <div class="name">${esc(cname)}</div>
-      <div class="actions">${bookedIds.has(id) ? '<span class="pill free">Reservada</span>'
-        : `<button class="btn primary" data-book="${id}" ${wait ? 'disabled' : ''}>${wait ? 'Enviado…' : free > 0 ? 'Reservar' : 'Lista espera'}</button>`}</div>
-      <div class="meta">${free > 0 ? `<span class="pill free">${free} libre${free > 1 ? 's' : ''}</span>` : '<span class="pill full">Llena</span>'}<span>${booked}/${cap}</span></div>
+      <div class="actions">${bookedIds.has(id) ? '<span class="pill free">Booked</span>'
+        : `<button class="btn primary" data-book="${id}" ${wait ? 'disabled' : ''}>${wait ? 'Sent…' : free > 0 ? 'Book' : 'Waitlist'}</button>`}</div>
+      <div class="meta">${free > 0 ? `<span class="pill free">${free} free</span>` : '<span class="pill full">Full</span>'}<span>${booked}/${cap}</span></div>
     </div>`;
   }
-  if (c.t) html += '<p class="note">Solo caben los primeros días en un mensaje; para más, mira la app de Wellpass.</p>';
-  html += '<p class="note">"(+€)" = clase con recargo para Wellpass. Máx. 1 reserva por día y estudio.</p>';
+  if (c.t) html += '<p class="note">Only the first days fit in one message; see the Wellpass app for more.</p>';
+  html += '<p class="note">"(+€)" = surcharge for Wellpass members. Max. 1 booking per day and studio.</p>';
   main.innerHTML = html;
 }
 
 function renderSetup(main) {
   $('#title').textContent = 'Red Light';
-  main.innerHTML = `<div class="setup"><b>Falta conectar la app</b>
-    <p class="note">Abre esta página con el enlace que te dio Claude (el que termina en <code>#d=…&amp;r=…</code>), o pégalo aquí:</p>
+  main.innerHTML = `<div class="setup"><b>The app isn’t connected yet</b>
+    <p class="note">Open this page from the link in your notification (the one ending in <code>#d=…&amp;r=…</code>), or paste it here:</p>
     <input id="link" placeholder="https://…#d=…&r=…" autocomplete="off">
-    <button class="btn primary" id="save">Conectar</button></div>`;
+    <button class="btn primary" id="save">Connect</button></div>`;
   $('#save').onclick = () => {
     const h = new URLSearchParams(($('#link').value.split('#')[1] || ''));
     if (h.get('d') && h.get('r')) { store.set('d', h.get('d')); store.set('r', h.get('r')); location.hash = ''; location.reload(); }
-    else toast('Ese enlace no tiene los datos de conexión.');
+    else toast('That link doesn’t contain the connection details.');
   };
 }
 
@@ -314,16 +314,16 @@ $('#main').addEventListener('click', (e) => {
   if (b.dataset.filter) { filter = b.dataset.filter; store.set('filter', filter); return render(); }
   if (b.dataset.book) {
     pending[b.dataset.book] = Date.now(); render();
-    return send(`book ${b.dataset.book}`, 'Reservando… te llega la confirmación en ~20 s');
+    return send(`book ${b.dataset.book}`, 'Booking… confirmation arrives in ~20 s');
   }
   if (b.dataset.cancel) {
     const late = b.dataset.late === '1';
-    if (!confirm(late ? 'Faltan menos de 12 h: cancelar ahora cuesta 5 €. ¿Cancelar igualmente?' : '¿Cancelar esta reserva?')) return;
+    if (!confirm(late ? 'Less than 12 h to go: cancelling now costs 5 €. Cancel anyway?' : 'Cancel this booking?')) return;
     pending[b.dataset.cancel] = Date.now(); render();
-    return send(`cancel ${b.dataset.cancel}`, 'Cancelando…');
+    return send(`cancel ${b.dataset.cancel}`, 'Cancelling…');
   }
-  if (b.dataset.ignore) { mark(b.dataset.ignore, 1); return send(`ignore ${b.dataset.ignore}`, 'No te avisaré de esta clase'); }
-  if (b.dataset.unignore) { mark(b.dataset.unignore, 0); return send(`unignore ${b.dataset.unignore}`, 'Vuelvo a vigilar esta clase'); }
+  if (b.dataset.ignore) { mark(b.dataset.ignore, 1); return send(`ignore ${b.dataset.ignore}`, 'You won’t be alerted for this class'); }
+  if (b.dataset.unignore) { mark(b.dataset.unignore, 0); return send(`unignore ${b.dataset.unignore}`, 'Watching this class again'); }
 });
 function mark(id, v) { const r = snap?.spots.find((s) => s[0] === id); if (r) { r[6] = v; render(); } }
 
@@ -334,9 +334,9 @@ $('#nav').addEventListener('click', (e) => {
 });
 $('#refresh').onclick = () => {
   if (!cfg.r) return;
-  if (tab === 'studios' && studio) { asked[studio] = Date.now(); send(`studio ${studio}`, 'Pidiendo el horario… (~20 s)'); }
-  else if (tab === 'studios' && !favs) send('favs', 'Pidiendo tus favoritos…');
-  else send('refresh', 'Pidiendo datos frescos…');
+  if (tab === 'studios' && studio) { asked[studio] = Date.now(); send(`studio ${studio}`, 'Fetching the schedule… (~20 s)'); }
+  else if (tab === 'studios' && !favs) send('favs', 'Fetching your favourites…');
+  else send('refresh', 'Asking for fresh data…');
   load();
 };
 
