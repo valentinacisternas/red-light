@@ -189,7 +189,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-13.4';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-13.5';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -468,10 +468,12 @@ $('#refresh').onclick = () => {
   load();
 };
 
-function accept(msg) {
+let snapTime = Number(store.get('snapTime') || 0);  // ntfy time of the snapshot we show
+function accept(msg, time = 0) {
   try {
     const s = JSON.parse(msg);
     if (s.k === 'favs') { if (!favs || s.at >= favs.at) { favs = s; store.set('favs', JSON.stringify(s)); render(); } return; }
+    if (s.k === 'evt') return time * 1000 >= snapTime ? applyEvent(s) : undefined;  // older than the snapshot: already in it
     if (s.k === 'studio') {
       if (!studios[s.s] || s.at >= studios[s.s].at) { studios[s.s] = s; store.set('studios', JSON.stringify(studios)); render(); }
       return;
@@ -479,12 +481,38 @@ function accept(msg) {
     if (s.v !== 1) return;
     if (!snap || s.at >= snap.at) {
       snap = s;
+      if (time) { snapTime = time * 1000; store.set('snapTime', String(snapTime)); }
       // drop "Sent…" once the VM has had time to act (or the new snapshot shows it done)
       for (const k in pending) if (Date.now() - pending[k] > 25000) delete pending[k];
       store.set('snap', msg);
       render();
     }
   } catch {}
+}
+
+// instant result of a Book/Cancel press, sent by the VM before the full snapshot
+const seenEvents = new Set();
+function applyEvent(e) {
+  const key = JSON.stringify(e);
+  if (seenEvents.has(key)) return;  // the same event arrives via the live stream and the 12 h history
+  seenEvents.add(key);
+  if (!snap) return;
+  if (e.t === 'booked' && e.s && !snap.mine.some((m) => m[0] === e.bid)) {
+    snap.mine.push([e.bid, e.cid, e.s, e.n, e.g, e.st]);
+    snap.mine.sort((a, b) => a[2].localeCompare(b[2]));
+    if (pending[e.cid]) toast(e.st === 'WAITING_LIST' ? 'On the waitlist ✓' : 'Booked ✓');
+    delete pending[e.cid];
+  } else if (e.t === 'cancelled') {
+    snap.mine = snap.mine.filter((m) => m[0] !== e.bid);
+    if (pending[e.bid]) toast('Booking cancelled');
+    delete pending[e.bid];
+  } else if (e.t === 'failed') {
+    const id = e.cid || e.bid;
+    if (pending[id]) toast(`Didn’t work: ${e.msg || 'try again'}`, 4000);
+    delete pending[id];
+  }
+  store.set('snap', JSON.stringify(snap));
+  render();
 }
 
 async function onMessage(m) {
@@ -501,7 +529,7 @@ async function onMessage(m) {
     } catch {}  // attachments expire after 3 h; the next hourly bundle replaces it
     return;
   }
-  accept(m.message);
+  accept(m.message, m.time);
 }
 
 async function load() {
