@@ -1,6 +1,6 @@
 {
-  "name": "Red Light",
-  "short_name": "Red Light",
+  "name": "MoveList",
+  "short_name": "MoveList",
   "display": "standalone",
   "background_color": "#140d17",
   "theme_color": "#140d17",

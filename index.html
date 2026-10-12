@@ -6,12 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Red Light">
+<meta name="apple-mobile-web-app-title" content="MoveList">
 <meta name="theme-color" content="#140d17">
 <meta name="referrer" content="no-referrer">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Red Light</title>
+<title>MoveList</title>
 <style>
   :root {
     --bg: #faf6f4; --bg-glow: rgba(255, 92, 92, .10);
@@ -181,7 +181,7 @@
 
 <script>
 /*
-  Red Light — a tiny front end for the Wellpass monitor that runs on the VM.
+  MoveList — a tiny front end for the Wellpass monitor that runs on the VM.
   The phone can't reach the VM, so both talk through two private ntfy.sh topics:
     data  (VM → app): compact JSON snapshots, studio schedules and an hourly bundle (attachment)
     reply (app → VM): "book <class>", "cancel <booking>", "ignore|unignore <class>", "refresh", "studio <slug>", "favs"
@@ -189,7 +189,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-13.2';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-13.3';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
