@@ -130,6 +130,39 @@
   .hero h3 { margin: 0; font-size: 21px; letter-spacing: -.015em; line-height: 1.15; }
   .back { border: 0; background: none; color: var(--accent); font-weight: 650; padding: 4px 0 8px; display: flex; align-items: center; gap: 2px; }
 
+  /* home */
+  .hello { margin: 2px 4px 14px; color: var(--muted); font-size: 14.5px; font-weight: 600; }
+  .next { position: relative; overflow: hidden; border-radius: var(--radius); padding: 16px 18px; margin-bottom: 14px; color: #fff;
+    background: linear-gradient(135deg, var(--accent-2), var(--accent) 50%, var(--lilac)); box-shadow: 0 10px 26px rgba(242, 85, 143, .35); cursor: pointer; }
+  .next small { font-size: 12px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; opacity: .85; }
+  .next b { display: block; font-size: 21px; margin: 4px 0 2px; letter-spacing: -.01em; }
+  .next span { font-size: 14px; opacity: .92; }
+  .next .in { position: absolute; right: 16px; top: 16px; background: rgba(255, 255, 255, .22); padding: 4px 10px; border-radius: 999px;
+    font-size: 12.5px; font-weight: 750; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 14px; box-shadow: var(--shadow); }
+  .tile .v { font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+  .tile .v small { font-size: 14px; font-weight: 700; color: var(--muted); margin-left: 2px; }
+  .tile .l { font-size: 12.5px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .tile .e { float: right; font-size: 18px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .panel h5 { margin: 0 0 10px; font-size: 15px; display: flex; justify-content: space-between; align-items: baseline; }
+  .panel h5 small { color: var(--muted); font-weight: 600; font-size: 12px; }
+  .chart { display: flex; align-items: flex-end; gap: 8px; height: 110px; }
+  .chart div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; justify-content: flex-end; }
+  .chart i { width: 100%; max-width: 26px; border-radius: 8px 8px 4px 4px; background: linear-gradient(180deg, var(--accent-2), var(--lilac)); min-height: 4px; }
+  .chart i.low { background: var(--card-2); }
+  .chart span { font-size: 11px; font-weight: 700; color: var(--muted); }
+  .chart .today span { color: var(--accent); }
+  .quick { display: flex; gap: 10px; margin-bottom: 14px; }
+  .quick button { flex: 1; text-align: left; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 18px; padding: 12px 14px;
+    box-shadow: var(--shadow); }
+  .quick b { display: block; font-size: 22px; font-weight: 800; color: var(--accent); }
+  .quick span { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .rowline { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14.5px; }
+  .rowline + .rowline { border-top: 1px solid var(--line); }
+  .rowline span { color: var(--muted); }
+
   /* misc */
   .empty { text-align: center; color: var(--muted); padding: 56px 24px; }
   .empty .big { font-size: 40px; margin-bottom: 10px; opacity: .8; }
@@ -202,15 +235,15 @@
 </header>
 <main id="main"></main>
 <nav id="nav">
-  <button data-tab="spots" aria-current="page">
+  <button data-tab="home" aria-current="page">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11L12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M12 17.2s-3-1.8-3-3.6a1.6 1.6 0 0 1 3-.8 1.6 1.6 0 0 1 3 .8c0 1.8-3 3.6-3 3.6z" fill="currentColor" stroke="none"/></svg>
+    Home</button>
+  <button data-tab="spots">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
     Red Light</button>
   <button data-tab="studios">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13"/><path d="M9.5 21v-5h5v5"/></svg>
     Studios</button>
-  <button data-tab="gym">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>
-    Private Gym</button>
   <button data-tab="specials">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.1 5.3L19.5 10l-5.4 1.7L12 17l-2.1-5.3L4.5 10l5.4-1.7z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>
     Specials</button>
@@ -232,7 +265,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-13.10';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-13.11';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -257,7 +290,8 @@ const hash = new URLSearchParams(location.hash.slice(1));
 if (hash.get('d') && hash.get('r')) { store.set('d', hash.get('d')); store.set('r', hash.get('r')); }
 const cfg = { d: store.get('d') || hash.get('d'), r: store.get('r') || hash.get('r') };
 
-let snap = null, tab = 'spots', filter = store.get('filter') || 'fits', pending = {};
+let snap = null, tab = 'home', filter = store.get('filter') || 'fits', pending = {};
+let stats = JSON.parse(store.get('stats') || 'null');  // hourly overview from the VM
 let favs = JSON.parse(store.get('favs') || 'null');            // {at, g: [[slug, name], ...]}
 let studios = JSON.parse(store.get('studios') || '{}');        // slug -> {n, at, c: [[id, start, name, booked, cap]], t}
 let studio = null, query = '', asked = {};                     // open studio slug, search text, slug -> time asked
@@ -429,7 +463,8 @@ function setStatus() {
 function render() {
   setStatus();
   const main = $('#main');
-  document.querySelectorAll('nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === tab ? 'page' : 'false'));
+  const navTab = tab === 'gym' ? 'studios' : tab;
+  document.querySelectorAll('nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === navTab ? 'page' : 'false'));
   const mine = snap?.mine || [];
   const mc = $('#mineCount'); mc.hidden = !mine.length; mc.textContent = mine.length;
 
@@ -438,9 +473,10 @@ function render() {
 
   const bookedIds = new Set(mine.map((m) => m[1]));
   if (tab === 'studios') return renderStudios(main, bookedIds);
+  if (tab === 'home') return renderHome(main, mine);
   if (tab === 'gym') {
-    $('#title').textContent = 'Private Gym';
-    main.innerHTML = `<div class="hero">${avatar('My Private Gym')}<div><h3>My Private Gym</h3><div class="sub">Maxvorstadt · Schleißheimer Str. 26</div></div></div>
+    $('#title').textContent = 'Studios';
+    main.innerHTML = `<button class="back" data-goto="studios">${ICON.back}All studios</button><div class="hero">${avatar('My Private Gym')}<div><h3>My Private Gym</h3><div class="sub">Maxvorstadt · Schleißheimer Str. 26</div></div></div>
       <a class="btn primary" style="display:block;text-align:center;text-decoration:none;margin:14px 0 8px;padding:15px;font-size:17px;border-radius:18px"
          href="https://book.timify.com/services?accountId=6a624dda873e82409eca4b5b&locale=de-de" target="_blank" rel="noopener">Book a slot</a>
       <a class="btn soft" style="display:block;text-align:center;text-decoration:none;padding:12px;border-radius:18px"
@@ -507,6 +543,64 @@ function render() {
   }
 }
 
+function renderHome(main, mine) {
+  $('#title').textContent = 'MoveList';
+  if (!stats || (Date.now() - parseLocal(stats.at)) / 36e5 > 2) {
+    if (!renderHome.asked) { renderHome.asked = 1; send('stats', null); }
+  }
+  const now = new Date(), hour = now.getHours();
+  const hi = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  let html = `<p class="hello">${hi}, Valentina 💖 · ${DAYS_LONG[now.getDay()]} ${now.getDate()} ${MONTHS[now.getMonth()]}</p>`;
+
+  // next booked class
+  const next = mine.find((m) => parseLocal(m[2]) > now);
+  if (next) {
+    const hrs = (parseLocal(next[2]) - now) / 36e5;
+    const when = hrs < 1 ? 'in < 1 h' : hrs < 24 ? `in ${Math.round(hrs)} h` : `in ${Math.round(hrs / 24)} day${Math.round(hrs / 24) > 1 ? 's' : ''}`;
+    html += `<div class="next" data-open="${next[1]}"><span class="in">${when}</span><small>Next class</small>
+      <b>${esc(next[3])}</b><span>${longDate(next[2])} · ${hhmm(next[2])} · ${esc(next[4])}</span></div>`;
+  } else {
+    html += `<div class="next" data-goto="spots"><small>Next class</small><b>Nothing booked yet</b><span>Find a red light class →</span></div>`;
+  }
+
+  // quick glance from the live snapshot
+  const fitting = (snap.spots || []).filter((r) => r[5] && !r[6] && r[4] - r[3] > 0 && parseLocal(r[2]) > now).length;
+  html += `<div class="quick">
+    <button data-goto="spots"><b>${fitting}</b><span>red light classes fit your calendar</span></button>
+    <button data-goto="specials"><b>${(snap.specials || []).length}</b><span>specials at your studios</span></button></div>`;
+
+  if (!stats) { main.innerHTML = html + empty('<span class="spinner" style="width:28px;height:28px;border-width:3px"></span>', 'Loading your stats', ''); return; }
+  const m = stats.month, c = stats.classes;
+  html += `<div class="tiles">
+    <div class="tile"><span class="e">🔥</span><div class="v">${stats.streak}<small>days</small></div><div class="l">Active streak</div></div>
+    <div class="tile"><span class="e">🌸</span><div class="v">${m.active}<small>days</small></div><div class="l">Active this month</div></div>
+    <div class="tile"><span class="e">👟</span><div class="v">${m.km}<small>km</small></div><div class="l">Moved this month</div></div>
+    <div class="tile"><span class="e">⚡️</span><div class="v">${m.kcal.toLocaleString('en')}<small>kcal</small></div><div class="l">Active energy this month</div></div></div>`;
+
+  // last 7 days of activity points (Apple Health via Wellpass)
+  const maxPts = Math.max(20, ...stats.week.map((d) => d[3]));
+  html += `<div class="panel"><h5>This week<small>activity points</small></h5><div class="chart">${stats.week.map((d, i) => {
+    const day = parseLocal(d[0] + 'T12:00');
+    return `<div class="${i === 6 ? 'today' : ''}"><i class="${d[3] < 10 ? 'low' : ''}" style="height:${Math.max(4, Math.round((d[3] / maxPts) * 82))}px" title="${d[3]} pts · ${d[1]} kcal · ${d[2]} km"></i><span>${DAYS[day.getDay()][0]}</span></div>`;
+  }).join('')}</div></div>`;
+
+  html += `<div class="panel"><h5>Classes<small>via Wellpass</small></h5>
+    <div class="rowline"><span>Attended this month</span><b>${c.went_month}</b></div>
+    <div class="rowline"><span>Attended in total</span><b>${c.went}</b></div>
+    <div class="rowline"><span>Upcoming</span><b>${mine.length}</b></div>
+    <div class="rowline"><span>Late cancels / no-shows</span><b style="color:${c.late ? 'var(--accent)' : 'inherit'}">${c.late}</b></div>
+    ${stats.top.length ? `<div class="rowline"><span>Favourite studio</span><b>${esc(stats.top[0][0].replace(/ München$/, ''))}</b></div>` : ''}</div>`;
+
+  if (stats.workouts.length) {
+    html += `<div class="panel"><h5>Workouts this month<small>Apple Watch</small></h5>${stats.workouts.map((w) => {
+      const d = parseLocal(w[0] + 'T12:00');
+      return `<div class="rowline"><span>${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} · ${esc(w[1])}</span><b>${w[2]} min${w[3] ? ` · ${w[3]} kcal` : ''}</b></div>`;
+    }).join('')}</div>`;
+  }
+  html += '<p class="note">Activity comes from Apple Health through Wellpass. Plain studio check-ins aren’t included (Wellpass doesn’t share them).</p>';
+  main.innerHTML = html;
+}
+
 function renderStudios(main, bookedIds) {
   if (!studio) {
     $('#title').textContent = 'Studios';
@@ -520,6 +614,7 @@ function renderStudios(main, bookedIds) {
     const list = favs.g.filter(([, n]) => !q || n.toLowerCase().includes(q))
       .sort((x, y) => kind(x[0]) - kind(y[0]) || x[1].localeCompare(y[1]));
     let html = `<label class="search">${ICON.search}<input id="q" placeholder="Search studios" value="${esc(query)}" autocomplete="off"></label>`;
+    if (!q) html += `<div class="label">Booked on their own site</div><div class="list"><button class="row" data-gym="1">${avatar('My Private Gym')}<div class="body"><div class="title">My Private Gym</div><div class="sub">Maxvorstadt · book via Timify</div></div>${ICON.chev}</button></div>`;
     const groups = [[0, 'With classes'], [1, 'Not loaded yet'], [2, 'Check-in only']];
     for (const [k, label] of groups) {
       const part = list.filter(([slug]) => kind(slug) === k);
@@ -576,7 +671,12 @@ function renderSetup(main) {
 
 $('#main').addEventListener('click', (e) => {
   const b = e.target.closest('button');
-  if (!b) { const card = e.target.closest('[data-open]'); if (card) showDetails(card.dataset.open); return; }
+  if (!b) {
+    const go = e.target.closest('[data-goto]'); if (go) { tab = go.dataset.goto; window.scrollTo(0, 0); return render(); }
+    const card = e.target.closest('[data-open]'); if (card) showDetails(card.dataset.open); return;
+  }
+  if (b.dataset.goto) { tab = b.dataset.goto; window.scrollTo(0, 0); return render(); }
+  if (b.dataset.gym) { tab = 'gym'; window.scrollTo(0, 0); return render(); }
   if (b.dataset.studio) { studio = b.dataset.studio; window.scrollTo(0, 0); return render(); }
   if (b.dataset.back) { studio = null; return render(); }
   if (b.dataset.filter) { filter = b.dataset.filter; store.set('filter', filter); return render(); }
@@ -623,7 +723,7 @@ $('#refresh').onclick = () => {
   const btn = $('#refresh'); btn.classList.add('spin'); setTimeout(() => btn.classList.remove('spin'), 1800);
   if (tab === 'studios' && studio) { asked[studio] = Date.now(); send(`studio ${studio}`, 'Refreshing this studio…'); }
   else if (tab === 'studios' && !favs) send('favs', 'Fetching your favourites…');
-  else send('refresh', 'Asking for fresh data…');
+  else { send('refresh', 'Asking for fresh data…'); if (tab === 'home') send('stats', null); }
   load();
 };
 
@@ -632,6 +732,7 @@ function accept(msg, time = 0) {
   try {
     const s = JSON.parse(msg);
     if (s.k === 'favs') { if (!favs || s.at >= favs.at) { favs = s; store.set('favs', JSON.stringify(s)); render(); } return; }
+    if (s.k === 'stats') { if (!stats || s.at >= stats.at) { stats = s; store.set('stats', msg); render(); } return; }
     if (s.k === 'evt') return (s.t === 'detail' || time * 1000 >= snapTime) ? applyEvent(s) : undefined;  // older than the snapshot: already in it
     if (s.k === 'studio') {
       if (!studios[s.s] || s.at >= studios[s.s].at) { studios[s.s] = s; store.set('studios', JSON.stringify(studios)); render(); }
