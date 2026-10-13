@@ -74,6 +74,8 @@
   .card { background: var(--card); border-radius: var(--radius); padding: 14px 14px 14px 16px; margin-bottom: 10px;
     display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow); border: 1px solid var(--line); }
   .card.dim { opacity: .45; }
+  .card[data-open] { cursor: pointer; }
+  .card[data-open]:active { transform: scale(.985); }
   .when { width: 50px; flex: none; }
   .when b { display: block; font-size: 19px; font-weight: 750; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
   .when span { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
@@ -158,7 +160,8 @@
   .scrim.show { opacity: 1; }
   .sheet { position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 21;
     background: var(--card); border-radius: 28px; padding: 22px 20px 18px; box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
-    transform: translateY(110%); transition: transform .32s cubic-bezier(.2, .9, .25, 1); text-align: center; }
+    transform: translateY(110%); transition: transform .32s cubic-bezier(.2, .9, .25, 1); text-align: center;
+    max-height: calc(88vh - env(safe-area-inset-top)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .sheet.show { transform: none; }
   .sheet .grab { width: 38px; height: 5px; border-radius: 3px; background: var(--line); margin: -10px auto 14px; }
   .sheet h4 { margin: 6px 0 4px; font-size: 21px; letter-spacing: -.015em; }
@@ -168,6 +171,10 @@
   .fact + .fact { border-top: 1px solid var(--line); }
   .fact span { color: var(--muted); }
   .fact b { font-weight: 650; text-align: right; }
+  .desc { text-align: left; white-space: pre-line; font-size: 14.5px; line-height: 1.5; color: var(--ink);
+    background: var(--card-2); border-radius: 16px; padding: 12px 14px; margin: 0 0 14px; }
+  .desc.muted { color: var(--muted); }
+  .sheet .full-title { font-size: 20px; line-height: 1.25; margin: 6px 4px 4px; }
   .fine { font-size: 12.5px; color: var(--muted); margin: 0 6px 16px; line-height: 1.45; }
   .sheet .buttons { display: flex; gap: 10px; }
   .sheet .buttons .btn { flex: 1; padding: 14px; font-size: 16px; border-radius: 16px; }
@@ -223,7 +230,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-13.8';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-13.9';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -303,7 +310,7 @@ function bookButton(id, booked, cap, bookedIds) {
 }
 
 function classCard({ id, start, name, sub = '', booked, cap, bookedIds, extra = '', dim = false, side = '' }) {
-  return `<div class="card${dim ? ' dim' : ''}">
+  return `<div class="card${dim ? ' dim' : ''}" data-open="${id}">
     <div class="when"><b>${hhmm(start)}</b></div>
     <div class="body"><div class="title">${esc(name)}</div>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}
       ${capacity(booked, cap)}${extra}</div>
@@ -317,14 +324,15 @@ function empty(icon, title, text) {
 
 // bottom sheet: resolves with the value of the pressed button (or null when dismissed)
 let sheetDone = null;
-function sheet({ icon = '', title, lead = '', facts = [], fine = '', buttons }) {
+function sheet({ icon = '', title, lead = '', facts = [], fine = '', html = '', buttons, titleClass = '' }) {
   const el = $('#sheet'), scrim = $('#scrim');
   if (sheetDone) sheetDone(null);
-  el.innerHTML = `<div class="grab"></div>${icon}<h4>${title}</h4>${lead ? `<p class="lead">${lead}</p>` : ''}
+  el.innerHTML = `<div class="grab"></div>${icon}<h4 class="${titleClass}">${title}</h4>${lead ? `<p class="lead">${lead}</p>` : ''}
     ${facts.length ? `<div class="facts">${facts.map(([k, v]) => `<div class="fact"><span>${k}</span><b>${v}</b></div>`).join('')}</div>` : ''}
+    ${html}
     ${fine ? `<p class="fine">${fine}</p>` : ''}
     <div class="buttons">${buttons.map((b, i) => `<button class="btn ${b.style || 'wait'}" data-sheet="${i}">${b.label}</button>`).join('')}</div>`;
-  el.hidden = scrim.hidden = false;
+  el.hidden = scrim.hidden = false; el.scrollTop = 0;
   requestAnimationFrame(() => { el.classList.add('show'); scrim.classList.add('show'); });
   return new Promise((resolve) => {
     sheetDone = (v) => {
@@ -354,7 +362,41 @@ function findClass(id) {
   }
   return null;
 }
-const awaiting = {};  // class/booking id -> what to show when the VM's answer arrives
+const awaiting = {};
+const details = {};    // class id -> full info from the VM
+let openDetail = null; // class id whose details sheet is showing
+
+function showDetails(id, bid) {
+  openDetail = id;
+  const c = findClass(id) || {};
+  const mineRow = (snap?.mine || []).find((m) => m[1] === id);
+  const d = details[id];
+  const name = d?.n || c.name || mineRow?.[3] || 'Class';
+  const start = d?.s || c.start || mineRow?.[2] || '';
+  const gym = d?.g || c.gym || mineRow?.[4] || '';
+  const booked = d ? d.b : c.booked, cap = d ? d.c : c.cap;
+  const facts = [];
+  if (start) facts.push(['When', `${longDate(start)} · ${hhmm(start)}${d?.e ? '–' + d.e : ''}`]);
+  if (gym) facts.push(['Studio', esc(gym)]);
+  if (d?.a) facts.push(['Address', esc(d.a)]);
+  if (d?.r) facts.push(['Room', esc(d.r)]);
+  if (d?.i) facts.push(['Instructor', esc(d.i)]);
+  if (cap) facts.push(['Spots', cap - booked > 0 ? `${cap - booked} of ${cap} left` : `Full${d?.w ? ` · waitlist ${d.w}` : ''}`]);
+  if (c.surcharge || /surcharge|\+\s*10\s*€|\+€/i.test(name + (d?.d || ''))) facts.push(['Price', '+10 € Wellpass surcharge']);
+  const desc = d ? (d.err ? '<p class="desc muted">Couldn’t load the description.</p>' : d.d ? `<p class="desc">${esc(d.d)}</p>` : '<p class="desc muted">No description for this class.</p>')
+                 : '<p class="desc muted"><span class="spinner"></span>Loading details…</p>';
+  const isMine = !!mineRow;
+  const buttons = [{ label: 'Close', value: null }];
+  if (isMine) buttons.push({ label: 'Cancel booking', value: 'cancel', style: 'soft' });
+  else if (cap && !pending[id]) buttons.push({ label: cap - booked > 0 ? 'Book' : 'Join waitlist', value: 'book', style: 'primary' });
+  sheet({ title: esc(name), titleClass: 'full-title', facts, html: desc, buttons }).then((v) => {
+    if (openDetail === id) openDetail = null;
+    if (v === 'book') confirmBook(id);
+    if (v === 'cancel') confirmCancel(mineRow[0]);
+  });
+  if (!d && !showDetails.asked?.[id]) { (showDetails.asked ||= {})[id] = 1; send(`detail ${id}`, null); }
+}
+  // class/booking id -> what to show when the VM's answer arrives
 
 function toast(msg, ms = 2600) {
   const t = $('#toast'); t.textContent = msg; t.classList.add('show');
@@ -447,7 +489,7 @@ function render() {
     let html = mine.length ? '' : empty('🎀', 'No upcoming bookings', 'Book a class and it shows up here.');
     for (const [bid, cid, start, name, gym, status] of mine) {
       const d = parseLocal(start), hoursLeft = (d - Date.now()) / 36e5, wait = pending[bid];
-      html += `<div class="card">
+      html += `<div class="card" data-open="${cid}" data-bid="${bid}">
         <div class="date"><span>${DAYS[d.getDay()]}</span><b>${d.getDate()}</b><span style="color:var(--muted)">${MONTHS[d.getMonth()]}</span></div>
         <div class="body"><div class="title">${esc(name)}</div>
           <div class="sub">${hhmm(start)} · ${esc(gym)}</div>
@@ -528,7 +570,8 @@ function renderSetup(main) {
 }
 
 $('#main').addEventListener('click', (e) => {
-  const b = e.target.closest('button'); if (!b) return;
+  const b = e.target.closest('button');
+  if (!b) { const card = e.target.closest('[data-open]'); if (card) showDetails(card.dataset.open); return; }
   if (b.dataset.studio) { studio = b.dataset.studio; window.scrollTo(0, 0); return render(); }
   if (b.dataset.back) { studio = null; return render(); }
   if (b.dataset.filter) { filter = b.dataset.filter; store.set('filter', filter); return render(); }
@@ -584,7 +627,7 @@ function accept(msg, time = 0) {
   try {
     const s = JSON.parse(msg);
     if (s.k === 'favs') { if (!favs || s.at >= favs.at) { favs = s; store.set('favs', JSON.stringify(s)); render(); } return; }
-    if (s.k === 'evt') return time * 1000 >= snapTime ? applyEvent(s) : undefined;  // older than the snapshot: already in it
+    if (s.k === 'evt') return (s.t === 'detail' || time * 1000 >= snapTime) ? applyEvent(s) : undefined;  // older than the snapshot: already in it
     if (s.k === 'studio') {
       if (!studios[s.s] || s.at >= studios[s.s].at) { studios[s.s] = s; store.set('studios', JSON.stringify(studios)); render(); }
       return;
@@ -604,6 +647,11 @@ function accept(msg, time = 0) {
 // instant result of a Book/Cancel press, sent by the VM before the full snapshot
 const seenEvents = new Set();
 function applyEvent(e) {
+  if (e.t === 'detail') {
+    details[e.id] = e;
+    if (openDetail === e.id) showDetails(e.id);
+    return;
+  }
   const key = JSON.stringify(e);
   if (seenEvents.has(key)) return;  // the same event arrives via the live stream and the 12 h history
   seenEvents.add(key);
