@@ -286,7 +286,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-14.2';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-14.3';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -785,6 +785,7 @@ $('#refresh').onclick = () => {
   const btn = $('#refresh'); btn.classList.add('spin'); setTimeout(() => btn.classList.remove('spin'), 1800);
   if (tab === 'studios' && studio) { asked[studio] = Date.now(); send(`studio ${studio}`, 'Refreshing this studio…'); }
   else if (tab === 'studios' && !favs) send('favs', 'Fetching your favourites…');
+  else if (tab === 'specials') { send('rescan', 'Scanning all your studios for specials… (~1 min)'); }
   else { send('refresh', 'Asking for fresh data…'); if (tab === 'home') send('stats', null); }
   load();
 };
