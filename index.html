@@ -230,6 +230,14 @@
   .desc hr { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
   .desc strong, .desc b { font-weight: 700; }
   .sheet .full-title { font-size: 20px; line-height: 1.25; margin: 6px 4px 4px; }
+  .trip { background: var(--card-2); border-radius: 16px; padding: 4px 14px; margin: 0 0 14px; text-align: left; }
+  .trip h6 { margin: 10px 0 2px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .trip .from { display: flex; align-items: center; gap: 10px; padding: 9px 0; }
+  .trip .from + .from { border-top: 1px solid var(--line); }
+  .trip .who { width: 52px; font-weight: 750; font-size: 14px; }
+  .trip .modes { flex: 1; display: flex; flex-wrap: wrap; gap: 6px 10px; font-size: 13.5px; }
+  .trip .modes b { font-weight: 750; }
+  .trip .pt { flex-basis: 100%; color: var(--muted); font-size: 12.5px; }
   .fine { font-size: 12.5px; color: var(--muted); margin: 0 6px 16px; line-height: 1.45; }
   .sheet .buttons { display: flex; gap: 10px; }
   .sheet .buttons .btn { flex: 1; padding: 14px; font-size: 16px; border-radius: 16px; }
@@ -286,7 +294,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-14.3';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-14.4';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -439,6 +447,7 @@ function findClass(id) {
 }
 const awaiting = {};
 const details = {};    // class id -> full info from the VM
+const trips = {};      // class id -> travel times from home / work
 let openDetail = null; // class id whose details sheet is showing
 
 // Descriptions come as plain text or as studio HTML: keep only harmless formatting, drop the rest
@@ -479,11 +488,18 @@ function showDetails(id, bid) {
   if (c.surcharge || /surcharge|\+\s*10\s*€|\+€/i.test(name + (d?.d || ''))) facts.push(['Price', '+10 € Wellpass surcharge']);
   const desc = d ? (d.err ? '<p class="desc muted">Couldn’t load the description.</p>' : d.d ? richDesc(d.d) : '<p class="desc muted">No description for this class.</p>')
                  : '<p class="desc muted"><span class="spinner"></span>Loading details…</p>';
+  const tr = trips[id];
+  const LABEL = { home: '🏠 Home', work: '💼 Work' };
+  const trip = tr ? `<div class="trip"><h6>Getting there</h6>${Object.entries(tr).map(([who, t]) => `
+      <div class="from"><span class="who">${LABEL[who] || esc(who)}</span><div class="modes">
+        ${t.pt ? `<span>🚇 <b>${t.pt[0]} min</b></span>` : ''}${t.bike ? `<span>🚲 <b>${t.bike} min</b></span>` : ''}${t.foot ? `<span>🚶‍♀️ <b>${t.foot} min</b></span>` : ''}
+        ${t.pt ? `<span class="pt">Leave ${t.pt[1]} · ${esc(t.pt[2])}</span>` : ''}</div></div>`).join('')}</div>`
+    : d ? '<div class="trip"><h6>Getting there</h6><div class="from"><span class="spinner"></span><span class="pt" style="flex-basis:auto">Checking routes…</span></div></div>' : '';
   const isMine = !!mineRow;
   const buttons = [{ label: 'Close', value: null }];
   if (isMine) buttons.push({ label: 'Cancel booking', value: 'cancel', style: 'soft' });
   else if (cap && !pending[id]) buttons.push({ label: cap - booked > 0 ? 'Book' : 'Join waitlist', value: 'book', style: 'primary' });
-  sheet({ title: esc(name), titleClass: 'full-title', facts, html: desc, buttons }).then((v) => {
+  sheet({ title: esc(name), titleClass: 'full-title', facts, html: trip + desc, buttons }).then((v) => {
     if (openDetail === id) openDetail = null;
     if (v === 'book') confirmBook(id);
     if (v === 'cancel') confirmCancel(mineRow[0]);
@@ -816,6 +832,11 @@ function accept(msg, time = 0) {
 // instant result of a Book/Cancel press, sent by the VM before the full snapshot
 const seenEvents = new Set();
 function applyEvent(e) {
+  if (e.t === 'travel') {
+    trips[e.id] = e.tr;
+    if (openDetail === e.id) showDetails(e.id);
+    return;
+  }
   if (e.t === 'detail') {
     details[e.id] = e;
     if (openDetail === e.id) showDetails(e.id);
