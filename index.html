@@ -286,7 +286,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-14.1';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-14.2';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -314,6 +314,7 @@ const cfg = { d: store.get('d') || hash.get('d'), r: store.get('r') || hash.get(
 const lastTab = JSON.parse(store.get('lastTab') || 'null');
 let snap = null, tab = lastTab && Date.now() - lastTab.at < 30 * 60000 ? lastTab.tab : 'home', filter = store.get('filter') || 'fits', pending = {};
 let stats = JSON.parse(store.get('stats') || 'null');  // hourly overview from the VM
+let bundleSpecials = JSON.parse(store.get('bundleSpecials') || '[]');  // full list from the hourly bundle
 let favs = JSON.parse(store.get('favs') || 'null');            // {at, g: [[slug, name], ...]}
 let studios = JSON.parse(store.get('studios') || '{}');        // slug -> {n, at, c: [[id, start, name, booked, cap]], t}
 let studio = null, query = '', asked = {};                     // open studio slug, search text, slug -> time asked
@@ -429,7 +430,7 @@ const longDate = (s) => { const d = parseLocal(s); return `${DAYS_LONG[d.getDay(
 // everything the app knows about a class id, wherever it was listed
 function findClass(id) {
   for (const r of snap?.spots || []) if (r[0] === id) return { name: r[1], start: r[2], gym: 'Session München', booked: r[3], cap: r[4], surcharge: true };
-  for (const r of snap?.specials || []) if (r[0] === id) return { name: r[3], start: r[1], gym: r[2], booked: r[4], cap: r[5] };
+  for (const r of [...(snap?.specials || []), ...bundleSpecials]) if (r[0] === id) return { name: r[3], start: r[1], gym: r[2], booked: r[4], cap: r[5] };
   for (const [slug, st] of Object.entries(studios)) for (const r of st.c) if (r[0] === id) {
     const gym = (favs?.g.find((f) => f[0] === slug) || [, st.n])[1];
     return { name: r[2].replace(' (+€)', ''), start: r[1], gym, booked: r[3], cap: r[4], surcharge: r[2].includes('(+€)') };
@@ -571,7 +572,9 @@ function render() {
 
   if (tab === 'specials') {
     $('#title').textContent = 'Specials';
-    const rows = (snap.specials || []).filter((r) => upcoming(r[1]));
+    const merged = new Map(bundleSpecials.map((r) => [r[0], r]));
+    for (const r of snap.specials || []) merged.set(r[0], r);
+    const rows = [...merged.values()].filter((r) => upcoming(r[1])).sort((a, b) => a[1].localeCompare(b[1]));
     let html = dayChips(rows.map((r) => r[1])) + (rows.length ? '' : empty('✨', 'No specials yet', 'Your favourite studios are checked every hour.'));
     let day = '';
     for (const [id, start, gym, name, booked, cap] of rows) {
@@ -623,7 +626,7 @@ function renderHome(main, mine) {
   const fitting = (snap.spots || []).filter((r) => r[5] && !r[6] && r[4] - r[3] > 0 && parseLocal(r[2]) > now).length;
   html += `<div class="quick">
     <button data-goto="spots"><b>${fitting}</b><span>red light classes fit your calendar</span></button>
-    <button data-goto="specials"><b>${(snap.specials || []).length}</b><span>specials at your studios</span></button></div>`;
+    <button data-goto="specials"><b>${new Set([...(snap.specials || []), ...bundleSpecials].filter((r) => upcoming(r[1])).map((r) => r[0])).size}</b><span>specials at your studios</span></button></div>`;
 
   if (!stats) { main.innerHTML = html + empty('<span class="spinner" style="width:28px;height:28px;border-width:3px"></span>', 'Loading your stats', ''); return; }
   const m = stats.month, c = stats.classes;
@@ -864,6 +867,7 @@ async function onMessage(m) {
       if (!favs || b.at >= favs.at) { favs = { at: b.at, g: b.favs }; store.set('favs', JSON.stringify(favs)); }
       for (const [slug, st] of Object.entries(b.studios)) if (!studios[slug] || st.at >= studios[slug].at) studios[slug] = st;
       store.set('studios', JSON.stringify(studios));
+      if (b.specials) { bundleSpecials = b.specials; store.set('bundleSpecials', JSON.stringify(b.specials)); }
       store.set('bundleTime', String(m.time * 1000));
       render();
     } catch {}  // attachments expire after 3 h; the next hourly bundle replaces it
