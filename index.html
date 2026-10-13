@@ -197,7 +197,8 @@
     max-height: calc(88vh - env(safe-area-inset-top)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .sheet.show { transform: none; }
   .sheet-x { position: sticky; top: -8px; float: right; z-index: 2; width: 34px; height: 34px; margin: -10px -8px 0 0;
-    border: 0; border-radius: 50%; background: var(--card-2); color: var(--muted); display: grid; place-items: center; }
+    border: 0; border-radius: 50%; background: var(--card); color: var(--ink); display: grid; place-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .15); }
   .sheet .grab { width: 38px; height: 5px; border-radius: 3px; background: var(--line); margin: -10px auto 14px; }
   .sheet h4 { margin: 6px 0 4px; font-size: 21px; letter-spacing: -.015em; }
   .sheet .lead { color: var(--muted); font-size: 14.5px; margin: 0 8px 14px; }
@@ -209,6 +210,11 @@
   .desc { text-align: left; white-space: pre-line; font-size: 14.5px; line-height: 1.5; color: var(--ink);
     background: var(--card-2); border-radius: 16px; padding: 12px 14px; margin: 0 0 14px; }
   .desc.muted { color: var(--muted); }
+  .desc.rich { white-space: normal; }
+  .desc p { margin: 0 0 10px; } .desc p:last-child { margin-bottom: 0; }
+  .desc ul, .desc ol { margin: 0 0 10px; padding-left: 20px; }
+  .desc hr { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
+  .desc strong, .desc b { font-weight: 700; }
   .sheet .full-title { font-size: 20px; line-height: 1.25; margin: 6px 4px 4px; }
   .fine { font-size: 12.5px; color: var(--muted); margin: 0 6px 16px; line-height: 1.45; }
   .sheet .buttons { display: flex; gap: 10px; }
@@ -265,7 +271,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-13.11';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-13.12';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -405,6 +411,25 @@ const awaiting = {};
 const details = {};    // class id -> full info from the VM
 let openDetail = null; // class id whose details sheet is showing
 
+// Descriptions come as plain text or as studio HTML: keep only harmless formatting, drop the rest
+function richDesc(text) {
+  if (!/<[a-z][\s\S]*>|&[a-z#0-9]+;/i.test(text)) return `<p class="desc">${esc(text)}</p>`;
+  const doc = new DOMParser().parseFromString(text, 'text/html');
+  const KEEP = { P: 'p', BR: 'br', STRONG: 'strong', B: 'strong', EM: 'em', I: 'em', UL: 'ul', OL: 'ol', LI: 'li', DIV: 'p', H1: 'p', H2: 'p', H3: 'p', H4: 'p' };
+  const walk = (node) => [...node.childNodes].map((n) => {
+    if (n.nodeType === 3) {
+      const t = n.textContent;
+      return /^\s*[-–—_=*]{5,}\s*$/.test(t) ? '<hr>' : esc(t);
+    }
+    if (n.nodeType !== 1) return '';
+    const tag = KEEP[n.tagName], inner = walk(n);
+    if (tag === 'br') return '<br>';
+    if (tag === 'p' && /^\s*<hr>\s*$/.test(inner)) return '<hr>';
+    return tag ? `<${tag}>${inner}</${tag}>` : inner;
+  }).join('');
+  return `<div class="desc rich">${walk(doc.body)}</div>`;
+}
+
 function showDetails(id, bid) {
   openDetail = id;
   const c = findClass(id) || {};
@@ -422,7 +447,7 @@ function showDetails(id, bid) {
   if (d?.i) facts.push(['Instructor', esc(d.i)]);
   if (cap) facts.push(['Spots', cap - booked > 0 ? `${cap - booked} of ${cap} left` : `Full${d?.w ? ` · waitlist ${d.w}` : ''}`]);
   if (c.surcharge || /surcharge|\+\s*10\s*€|\+€/i.test(name + (d?.d || ''))) facts.push(['Price', '+10 € Wellpass surcharge']);
-  const desc = d ? (d.err ? '<p class="desc muted">Couldn’t load the description.</p>' : d.d ? `<p class="desc">${esc(d.d)}</p>` : '<p class="desc muted">No description for this class.</p>')
+  const desc = d ? (d.err ? '<p class="desc muted">Couldn’t load the description.</p>' : d.d ? richDesc(d.d) : '<p class="desc muted">No description for this class.</p>')
                  : '<p class="desc muted"><span class="spinner"></span>Loading details…</p>';
   const isMine = !!mineRow;
   const buttons = [{ label: 'Close', value: null }];
