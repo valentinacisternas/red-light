@@ -163,6 +163,8 @@
     transform: translateY(110%); transition: transform .32s cubic-bezier(.2, .9, .25, 1); text-align: center;
     max-height: calc(88vh - env(safe-area-inset-top)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .sheet.show { transform: none; }
+  .sheet-x { position: sticky; top: -8px; float: right; z-index: 2; width: 34px; height: 34px; margin: -10px -8px 0 0;
+    border: 0; border-radius: 50%; background: var(--card-2); color: var(--muted); display: grid; place-items: center; }
   .sheet .grab { width: 38px; height: 5px; border-radius: 3px; background: var(--line); margin: -10px auto 14px; }
   .sheet h4 { margin: 6px 0 4px; font-size: 21px; letter-spacing: -.015em; }
   .sheet .lead { color: var(--muted); font-size: 14.5px; margin: 0 8px 14px; }
@@ -230,7 +232,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-13.9';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-13.10';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -327,7 +329,7 @@ let sheetDone = null;
 function sheet({ icon = '', title, lead = '', facts = [], fine = '', html = '', buttons, titleClass = '' }) {
   const el = $('#sheet'), scrim = $('#scrim');
   if (sheetDone) sheetDone(null);
-  el.innerHTML = `<div class="grab"></div>${icon}<h4 class="${titleClass}">${title}</h4>${lead ? `<p class="lead">${lead}</p>` : ''}
+  el.innerHTML = `<button class="sheet-x" data-x="1" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="grab"></div>${icon}<h4 class="${titleClass}">${title}</h4>${lead ? `<p class="lead">${lead}</p>` : ''}
     ${facts.length ? `<div class="facts">${facts.map(([k, v]) => `<div class="fact"><span>${k}</span><b>${v}</b></div>`).join('')}</div>` : ''}
     ${html}
     ${fine ? `<p class="fine">${fine}</p>` : ''}
@@ -341,7 +343,10 @@ function sheet({ icon = '', title, lead = '', facts = [], fine = '', html = '', 
       setTimeout(() => { if (!sheetDone) el.hidden = scrim.hidden = true; }, 320);
       resolve(v);
     };
-    el.onclick = (e) => { const b = e.target.closest('[data-sheet]'); if (b) sheetDone(buttons[+b.dataset.sheet].value); };
+    el.onclick = (e) => {
+      if (e.target.closest('[data-x]')) return sheetDone(null);
+      const b = e.target.closest('[data-sheet]'); if (b) sheetDone(buttons[+b.dataset.sheet].value);
+    };
     scrim.onclick = () => sheetDone && sheetDone(null);
   });
 }
