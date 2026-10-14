@@ -300,7 +300,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-14.5';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-14.6';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -497,11 +497,15 @@ function showDetails(id, bid) {
   const tr = trips[id];
   const LABEL = { home: '🏠 Home', work: '💼 Work' };
   const ICONS = { UBAHN: '🚇', BUS: '🚌', REGIONAL: '🚌', TRAM: '🚊', SBAHN: '🚆', BAHN: '🚆' };
-  const conn = (c) => `<div class="conn"><span class="t">${c[1]} → ${c[2]}</span><span class="lines">${c[3].map((l) =>
+  // the VM's previous version sent one connection as [min, dep, "lines"]: show it too
+  const conns = (pt) => !Array.isArray(pt) || !pt.length ? [] : typeof pt[0] === 'number'
+    ? [[pt[0], pt[1], '', String(pt[2] || '').split(' → ').map((l) => [/^U/.test(l) ? 'UBAHN' : /^S/.test(l) ? 'SBAHN' : /^\d{1,2}$/.test(l) && +l < 40 ? 'TRAM' : 'BUS', l])]]
+    : pt;
+  const conn = (c) => `<div class="conn"><span class="t">${c[2] ? `${c[1]} → ${c[2]}` : `Leave ${c[1]}`}</span><span class="lines">${c[3].map((l) =>
       `<span class="ln ${esc(l[0])}">${ICONS[l[0]] || ''}${esc(l[1])}</span>`).join('<span class="arrow">›</span>')}</span><span class="m">${c[0]} min</span></div>`;
   const trip = tr ? `<div class="trip"><h6>Getting there</h6>${Object.entries(tr).map(([who, t]) => `
       <div class="from"><div class="head">${LABEL[who] || esc(who)}${t.foot ? `<span>🚶‍♀️ ${t.foot} min walk</span>` : ''}</div>
-        ${Array.isArray(t.pt) && t.pt.length ? t.pt.map(conn).join('') : '<div class="conn"><span class="t">No connection found</span></div>'}</div>`).join('')}</div>`
+        ${conns(t.pt).length ? conns(t.pt).map(conn).join('') : '<div class="conn"><span class="t">No connection found</span></div>'}</div>`).join('')}</div>`
     : d ? '<div class="trip"><h6>Getting there</h6><div class="from"><span class="spinner"></span><span style="color:var(--muted);font-size:13px">Checking routes…</span></div></div>' : '';
   const isMine = !!mineRow;
   const buttons = [{ label: 'Close', value: null }];
