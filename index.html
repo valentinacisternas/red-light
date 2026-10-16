@@ -300,7 +300,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-14.7';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-16.1';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -509,7 +509,7 @@ function showDetails(id, bid) {
       <div class="from"><div class="head">${LABEL[who] || esc(who)}${t.foot ? `<span>🚶‍♀️ ${t.foot} min walk</span>` : ''}</div>
         ${conns(t.pt).length ? conns(t.pt).map(conn).join('') : '<div class="conn"><span class="t">No connection found</span></div>'}</div>`).join('')}</div>`
     : !d ? ''
-    : Date.now() - (showDetails.asked?.[id] || 0) < 20000
+    : Date.now() - (showDetails.asked?.[id] || 0) < 45000
       ? '<div class="trip"><h6>Getting there</h6><div class="from"><span class="spinner"></span><span style="color:var(--muted);font-size:13px">Checking routes…</span></div></div>'
       : `<div class="trip"><h6>Getting there</h6><div class="from" style="display:flex;justify-content:space-between;align-items:center">
            <span style="color:var(--muted);font-size:13px">Couldn’t load routes</span><button class="btn soft" data-retry="${id}" style="min-width:0;padding:6px 12px">Retry</button></div></div>`;
@@ -525,7 +525,8 @@ function showDetails(id, bid) {
   const asked = (showDetails.asked ||= {});
   if ((!d || !tr) && (!asked[id] || Date.now() - asked[id] > 30000)) {
     asked[id] = Date.now(); send(`detail ${id}`, null);
-    setTimeout(() => { if (openDetail === id && !trips[id]) showDetails(id); }, 20500);
+    pollFor(id, Math.floor(asked[id] / 1000) - 5);
+    setTimeout(() => { if (openDetail === id && !trips[id]) showDetails(id); }, 45500);
   }
 }
   // class/booking id -> what to show when the VM's answer arrives
@@ -930,6 +931,18 @@ async function load() {
   } catch { render(); }
 }
 
+// Fallback for the live stream: while a class sheet waits for the VM, also ask ntfy directly every 3 s
+async function pollFor(id, since) {
+  for (let i = 0; i < 15 && openDetail === id && !(details[id] && trips[id]); i++) {
+    await new Promise((r) => setTimeout(r, 3000));
+    try {
+      const r = await fetch(`${NTFY}/${cfg.d}/json?poll=1&since=${since}`);
+      const msgs = (await r.text()).trim().split('\n').filter(Boolean).map((l) => JSON.parse(l)).filter((m) => m.event === 'message');
+      for (const m of msgs) if (!m.attachment) accept(m.message, m.time);
+    } catch {}
+  }
+}
+
 let es;
 function live() {
   if (!cfg.d || es) return;
@@ -956,7 +969,7 @@ function live() {
 
 const cached = store.get('snap'); if (cached) accept(cached);
 render(); load(); live();
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { checkForUpdate(); load(); live(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { checkForUpdate(); if (es) { es.close(); es = null; } load(); live(); } });
 checkForUpdate();
 setInterval(setStatus, 30000);
 </script>
