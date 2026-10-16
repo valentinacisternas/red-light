@@ -303,7 +303,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-16.2';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-16.3';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -752,7 +752,7 @@ function renderStudios(main, bookedIds) {
         html += classCard({ id, start, name: cname, sub: gym, booked, cap, bookedIds });
       }
       if (!hits.length) html += empty('🔎', `No ${esc(cat)} classes`, q ? 'None in the studios matching your search.' : 'None coming up in your favourite studios.');
-      html += '<p class="note">From your favourite studios, next 7 days. Studios not loaded yet aren’t included.</p>';
+      html += '<p class="note">From your favourite studios, next 14 days. Studios not loaded yet aren’t included.</p>';
       main.innerHTML = html;
       const qi = $('#q'); qi.oninput = () => { query = qi.value; const pos = qi.selectionStart; renderStudios(main, bookedIds); const n = $('#q'); n.focus(); n.setSelectionRange(pos, pos); };
       return;
@@ -965,6 +965,10 @@ async function onMessage(m) {
       store.set('bundleTime', String(m.time * 1000));
       render();
     } catch {}  // attachments expire after 3 h; the next hourly bundle replaces it
+    return;
+  }
+  if (m.attachment && m.attachment.name === 'studio.json') {  // one studio's 14 days, too big for a message
+    try { accept(await fetch(m.attachment.url).then((r) => r.text()), m.time); } catch {}
     return;
   }
   accept(m.message, m.time);
