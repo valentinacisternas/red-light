@@ -134,6 +134,9 @@
   .days { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 10px -16px 0; padding: 0 16px 2px; position: sticky;
     top: calc(env(safe-area-inset-top) + 74px); z-index: 4; }
   .days::-webkit-scrollbar { display: none; }
+  .cats { position: static; margin: 0 -16px 12px; }
+  .cats button.on { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  .cats button.on small { color: inherit; opacity: .7; }
   .days button { flex: none; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px;
     padding: 6px 12px; font-size: 13px; font-weight: 700; box-shadow: var(--shadow); }
   .days button small { color: var(--muted); font-weight: 600; margin-left: 4px; }
@@ -300,7 +303,7 @@
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-16.1';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-10-16.2';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -331,6 +334,7 @@ let stats = JSON.parse(store.get('stats') || 'null');  // hourly overview from t
 let bundleSpecials = JSON.parse(store.get('bundleSpecials') || '[]');  // full list from the hourly bundle
 let favs = JSON.parse(store.get('favs') || 'null');            // {at, g: [[slug, name], ...]}
 let studios = JSON.parse(store.get('studios') || '{}');        // slug -> {n, at, c: [[id, start, name, booked, cap]], t}
+let cat = store.get('cat') || '';  // Studios category filter
 let studio = null, query = '', asked = {};                     // open studio slug, search text, slug -> time asked
 
 const parseLocal = (s) => { const [d, t] = s.split('T'); const [y, m, dd] = d.split('-').map(Number); const [h, mi] = t.split(':').map(Number); return new Date(y, m - 1, dd, h, mi); };
@@ -699,6 +703,30 @@ function renderHome(main, mine) {
   main.innerHTML = html;
 }
 
+// Class categories, most specific first: a class gets the first one whose pattern matches its name
+const CATS = [
+  ['Red Light Pilates', /red\s*light/i],
+  ['Hot Pilates', /(hot|inferno|infrared).*pilates|pilates.*\bhot\b/i],
+  ['Reformer & Lagree', /reformer|lagree|cadillac|tower|megaformer/i],
+  ['Pilates', /pilates/i],
+  ['Barre', /barre|ballet/i],
+  ['Hot Yoga', /hot.*yoga|yoga.*\bhot\b|bikram/i],
+  ['Yoga', /yoga|yin|vinyasa|ashtanga|flow/i],
+  ['Cycling', /cycl|spin|ride|bike/i],
+  ['Boxing', /box|kickbox|fight|muay/i],
+  ['Dance', /dance|salsa|bachata|zumba|twerk|heels|kizomba/i],
+  ['Strength & HIIT', /hiit|strength|sculpt|circuit|bootcamp|tabata|core|body|burn|ems|functional/i],
+];
+const catOf = (name) => (CATS.find(([, rx]) => rx.test(name)) || ['Other'])[0];
+function catChips(names) {
+  const n = {};
+  for (const x of names) { const k = catOf(x); n[k] = (n[k] || 0) + 1; }
+  const keys = [...CATS.map((c) => c[0]), 'Other'].filter((k) => n[k]);
+  if (!keys.length) return '';
+  return `<div class="days cats"><button data-cat="" class="${cat ? '' : 'on'}">All</button>${keys.map((k) =>
+    `<button data-cat="${esc(k)}" class="${cat === k ? 'on' : ''}">${esc(k)}<small>${n[k]}</small></button>`).join('')}</div>`;
+}
+
 function renderStudios(main, bookedIds) {
   if (!studio) {
     $('#title').textContent = 'Studios';
@@ -712,6 +740,23 @@ function renderStudios(main, bookedIds) {
     const list = favs.g.filter(([, n]) => !q || n.toLowerCase().includes(q))
       .sort((x, y) => kind(x[0]) - kind(y[0]) || x[1].localeCompare(y[1]));
     let html = `<label class="search">${ICON.search}<input id="q" placeholder="Search studios" value="${esc(query)}" autocomplete="off"></label>`;
+    const all = [];
+    for (const [slug, name] of list) for (const r of studios[slug]?.c || []) if (upcoming(r[1])) all.push([r, name.replace(/ München$/, '')]);
+    html += catChips(all.map(([r]) => r[2]));
+    if (cat) {
+      const hits = all.filter(([r]) => catOf(r[2]) === cat).sort((x, y) => x[0][1].localeCompare(y[0][1]));
+      html += dayChips(hits.map(([r]) => r[1]));
+      let day = '';
+      for (const [[id, start, cname, booked, cap], gym] of hits) {
+        if (dayKey(start) !== day) { day = dayKey(start); html += dayHeading(start); }
+        html += classCard({ id, start, name: cname, sub: gym, booked, cap, bookedIds });
+      }
+      if (!hits.length) html += empty('🔎', `No ${esc(cat)} classes`, q ? 'None in the studios matching your search.' : 'None coming up in your favourite studios.');
+      html += '<p class="note">From your favourite studios, next 7 days. Studios not loaded yet aren’t included.</p>';
+      main.innerHTML = html;
+      const qi = $('#q'); qi.oninput = () => { query = qi.value; const pos = qi.selectionStart; renderStudios(main, bookedIds); const n = $('#q'); n.focus(); n.setSelectionRange(pos, pos); };
+      return;
+    }
     if (!q) html += `<div class="label">Booked on their own site</div><div class="list"><button class="row" data-gym="1">${avatar('My Private Gym')}<div class="body"><div class="title">My Private Gym</div><div class="sub">Maxvorstadt · book via Timify</div></div>${ICON.chev}</button></div>`;
     const groups = [[0, 'With classes'], [1, 'Not loaded yet'], [2, 'Check-in only']];
     for (const [k, label] of groups) {
@@ -744,7 +789,10 @@ function renderStudios(main, bookedIds) {
   if (stale && c) html += '<div class="updating"><span class="spinner"></span>Updating…</div>';
   if (!c) { main.innerHTML = html + empty('<span class="spinner" style="width:28px;height:28px;border-width:3px"></span>', 'Fetching the schedule', 'A couple of seconds.'); return; }
   if (!c.c.length) html += empty('🚪', 'No bookable classes', 'This studio works with check-in only.');
-  const sessions = c.c.filter((r) => upcoming(r[1]));
+  const soon = c.c.filter((r) => upcoming(r[1]));
+  html += catChips(soon.map((r) => r[2]));
+  const sessions = cat ? soon.filter((r) => catOf(r[2]) === cat) : soon;
+  if (cat && !sessions.length && soon.length) html += empty('🔎', `No ${esc(cat)} here`, 'Tap All to see every class.');
   html += dayChips(sessions.map((r) => r[1]));
   let day = '';
   for (const [id, start, cname, booked, cap] of sessions) {
@@ -780,6 +828,7 @@ $('#main').addEventListener('click', (e) => {
   if (b.dataset.gym) { tab = 'gym'; window.scrollTo(0, 0); return render(); }
   if (b.dataset.studio) { studio = b.dataset.studio; window.scrollTo(0, 0); return render(); }
   if (b.dataset.back) { studio = null; return render(); }
+  if (b.dataset.cat !== undefined) { cat = b.dataset.cat; store.set('cat', cat); return render(); }
   if (b.dataset.filter) { filter = b.dataset.filter; store.set('filter', filter); return render(); }
   if (b.dataset.book) return confirmBook(b.dataset.book);
   if (b.dataset.cancel) return confirmCancel(b.dataset.cancel);
