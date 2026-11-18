@@ -248,7 +248,9 @@
   .ln.SBAHN { background: #408335; } .ln.BAHN { background: #8a8a8a; }
   .arrow { color: var(--muted); font-size: 11px; }
   .fine { font-size: 12.5px; color: var(--muted); margin: 0 6px 16px; line-height: 1.45; }
-  .sheet .buttons { display: flex; gap: 10px; }
+  .sheet .buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+  .sheet .buttons .btn.notify { flex-basis: 100%; order: -1; }
+  .card .watching { font-size: 12px; color: var(--muted); margin-top: 4px; }
   .sheet .buttons .btn { flex: 1; padding: 14px; font-size: 16px; border-radius: 16px; }
   .badge-icon { width: 64px; height: 64px; border-radius: 50%; margin: 2px auto 6px; display: grid; place-items: center; }
   .badge-icon.ok { background: var(--green-soft); color: var(--green); }
@@ -298,12 +300,12 @@
   MoveList — a tiny front end for the Wellpass monitor that runs on the VM.
   The phone can't reach the VM, so both talk through two private ntfy.sh topics:
     data  (VM → app): compact JSON snapshots, studio schedules and an hourly bundle (attachment)
-    reply (app → VM): "book <class>", "cancel <booking>", "ignore|unignore <class>", "refresh", "studio <slug>", "favs"
+    reply (app → VM): "book <class>", "cancel <booking>", "ignore|unignore <class>", "watch|unwatch <class>", "refresh", "studio <slug>", "favs"
   The topic names live only in this device's storage (they arrive in the link's #fragment,
   which browsers never send to the server).
 */
 const NTFY = 'https://ntfy.sh';
-const VERSION = '2026-10-16.3';  // bump on every publish: open apps notice and reload themselves
+const VERSION = '2026-11-18.1';  // bump on every publish: open apps notice and reload themselves
 
 // GitHub Pages lets phones cache the page for 10 min; ask past the cache whether a newer one is live
 async function checkForUpdate() {
@@ -387,11 +389,18 @@ function bookButton(id, booked, cap, bookedIds) {
                   : `<button class="btn soft" data-book="${id}">Waitlist</button>`;
 }
 
+// "Notify me when a spot is free": the VM's list (snapshot "watch"), overridden by presses it hasn't confirmed yet
+const watchLocal = {};
+function isWatched(id) {
+  if (id in watchLocal) return watchLocal[id];
+  return (snap?.watch || []).includes(id);
+}
+
 function classCard({ id, start, name, sub = '', booked, cap, bookedIds, extra = '', dim = false, side = '' }) {
   return `<div class="card${dim ? ' dim' : ''}" data-open="${id}">
     <div class="when"><b>${hhmm(start)}</b></div>
     <div class="body"><div class="title">${esc(name)}</div>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}
-      ${capacity(booked, cap)}${extra}</div>
+      ${capacity(booked, cap)}${isWatched(id) ? '<div class="watching">🔔 You’ll get an e-mail when a spot opens</div>' : ''}${extra}</div>
     <div class="side">${bookButton(id, booked, cap, bookedIds)}${side}</div>
   </div>`;
 }
@@ -521,8 +530,16 @@ function showDetails(id, bid) {
   const buttons = [{ label: 'Close', value: null }];
   if (isMine) buttons.push({ label: 'Cancel booking', value: 'cancel', style: 'soft' });
   else if (cap && !pending[id]) buttons.push({ label: cap - booked > 0 ? 'Book' : 'Join waitlist', value: 'book', style: 'primary' });
+  const watched = isWatched(id);
+  if (!isMine && cap && (cap - booked <= 0 || watched))
+    buttons.push(watched ? { label: '🔕 Stop notifying me', value: 'unwatch', style: 'soft notify' }
+                         : { label: '🔔 Notify me when a spot is free', value: 'watch', style: 'soft notify' });
   sheet({ title: esc(name), titleClass: 'full-title', facts, html: trip + desc, buttons }).then((v) => {
     if (openDetail === id) openDetail = null;
+    if (v === 'watch' || v === 'unwatch') {
+      watchLocal[id] = v === 'watch'; render();
+      send(`${v} ${id}`, v === 'watch' ? 'You’ll get an e-mail when a spot opens' : 'Stopped watching this class');
+    }
     if (v === 'book') confirmBook(id);
     if (v === 'cancel') confirmCancel(mineRow[0]);
   });
@@ -895,6 +912,7 @@ function accept(msg, time = 0) {
       if (time) { snapTime = time * 1000; store.set('snapTime', String(snapTime)); }
       // drop "Sent…" once the VM has had time to act (or the new snapshot shows it done)
       for (const k in pending) if (Date.now() - pending[k] > 25000) delete pending[k];
+      for (const k in watchLocal) if ((s.watch || []).includes(k) === watchLocal[k]) delete watchLocal[k];
       store.set('snap', msg);
       render();
     }
